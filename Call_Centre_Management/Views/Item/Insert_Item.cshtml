@@ -1,0 +1,945 @@
+﻿
+@{
+    ViewBag.Title = "Add New Item";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Insert Item</h2>
+@*<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>*@
+<style>
+    .txtbox {
+        width: 100%;
+        padding: 5px 5px;
+        margin: 2px 0;
+    }
+</style>
+
+<script type="text/javascript">
+    var count = 0;
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        $("#lbl_userMSG").html('');
+        $('#btnUpdateRawItem').hide();
+        loadCategory();
+        loadUOM();
+    });
+
+    //var loadFile = function (event) {
+    //    var output = document.getElementById('img1');
+    //    output.src = URL.createObjectURL(event.target.files[0]);
+    //    output.onload = function () {
+    //        URL.revokeObjectURL(output.src) // free memory
+    //    }
+    //};
+
+    function ItemSubmit() {
+        var stulist = new Array();
+        var row = $("#tbl_rawItem").find("tr").length;
+        for (var i = 1; i < row; i++) {
+            stulist.push({
+                name: $("#tbl_rawItem").find("tr").eq(i).find('td:eq(0) input[type="text"]').val(),
+                qty: $("#tbl_rawItem").find("tr").eq(i).find('td:eq(1) input[type="text"]').val(),
+            })
+        }
+
+
+        //var fileUpload = $("#txtFileUpload").get(0);
+        //var files = fileUpload.files;
+
+        //// Create FormData object
+        //var fileData = new FormData();
+
+        //// Looping over all files and add it to FormData object
+        //for (var i = 0; i < files.length; i++) {
+        //    fileData.append(files[i].name, files[i]);
+
+        //}
+      
+
+        var gst = $('#txt_gst').val().split("%");
+        var Values = {};
+        Values.item_name = $('#txt_Item_Name').val();
+        Values.category = $('#dd_category').val();
+        Values.sub_category = $('#txt_subCategory').val();
+        Values.UOM = $('#dd_UOM').val();
+        Values.UOM_value = $('#txt_UOM_Value').val();
+        Values.rate = $('#txt_Rate').val();
+        Values.schemeName = $('#txt_Scheme_Name').val();
+        Values.Scheme_values = $('#txt_Scheme_values').val();
+        Values.scheme_qty = $('#txt_Scheme_qty').val();
+        Values.gst = gst[0];
+        Values.subItemList = stulist;
+        //  Values.fileupload = fileData;
+
+        if (Values.item_name.length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Item/Insert_Item",
+                method: "Post",
+                data: { item: Values },
+                success: function (Result) {
+                    if (Result > 0) {
+                        //$('#msg').html("<div class='alert alert-success alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Success!</strong> Record Sucessfully Saved.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                        alert("Item Registered Successfully !!.");
+                        location.reload();
+                    }
+                    else if (Result == 0) {
+                        alert("Oops....Something Gone Wrong ! Please Try Again");
+                    }
+                    else if (Result < 0) {
+                        alert("Item Name Is Already Exists Please Try Again.");
+                        //$('#msg').html("<div class='alert alert-danger alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Sorry!</strong> Record Is Already Exists Please Try Again.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                    }
+                    else {
+                        alert("Oops....Something Gone Wrong ! Please Try Again");
+                    }
+                }
+            });
+        }
+        else {
+            //   $('#msg').html("<span style='background-color:red;color:white'>Please Enter User Name.</span>");
+            alert("Please Enter Area Name.");
+        }
+    }
+
+    function checkUserName() {
+        if ($('#txt_userName').val().length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Employee/checkuserName",
+                method: "Post",
+                data: { username: $('#txt_userName').val() },
+                success: function (Result) {
+                    if (Result == true) {
+                        $("#txt_userName").val('');
+                        $("#lbl_userMSG").html("<span style='color:red'>Allready Exists</span>");
+                    }
+                    else {
+                        $("#lbl_userMSG").html("<span style='color:Green'>User Name Available</span>");
+                    }
+                }
+            })
+        }
+    }
+
+    function getper() {
+
+        var i = $('#txt_gst').val();
+        if (i > 100) {
+            $('#txt_gst').val('');
+            alert(' GSt % should be between in 1-100');
+            return;
+        }
+        $('#txt_gst').val(i + '%');
+
+    }
+
+    function checkItemName() {
+        // var name = $('#txt_Item_Name').val();
+        $('#msg').val('');
+        $.ajax({
+            url: "/Item/checkItem",
+            method: "Post",
+            data: { item: $('#txt_Item_Name').val() },
+            success: function (Result) {
+                if (Result == true) {
+                    $("#txt_userName").val('');
+                    $("#lbl_userMSG").html("<span style='color:red'>Already Exists</span>");
+                }
+                else {
+
+                    $("#lbl_userMSG").html("<span style='color:Green'>Available</span>");
+                }
+            }
+        });
+
+
+    }
+
+    function UOMpopup() {
+        $("#UOMpopup").modal("show");
+    }
+
+    function CategoryPopup() {
+        $("#CategoryPopUp").modal("show");
+    }
+
+    function SubCategoryPopup() {
+
+        $.ajax({
+            url: "/Item/getCategory",
+            method: "Get",
+            //data: { UOM: $('#txtUOMpop').val() },
+            success: function (Result) {
+                console.log(Result);
+                $('#ddCategory').empty();
+                if (Result.length > 0) {
+                    for (var i = 0; i < Result.length; i++) {
+                        $('#ddCategory').append('<option value="' + Result[i]['category'] + '">' + Result[i]['category'] + '</option>')
+                    }
+                }
+            }
+        });
+
+        $("#SubCategoryPopUp").modal("show");
+    }
+
+    function SubmitUOM() {
+        if ($('#txtUOMpop').val() == '') {
+            return alert('UOM is empty')
+        }
+        $.ajax({
+            url: "/Item/submitUom",
+            method: "Post",
+            data: { UOM: $('#txtUOMpop').val() },
+            success: function (Result) {
+                if (Result == "0") {
+                    //$("#txtUOMpop").val('');
+                    $("#UOMmsg").html("<span style='color:red'>!! Oops Something Went Wrong</span>");
+                }
+                else if (Result == "-1") {
+                    $("#txt_txtUOMpopuserName").val('');
+                    $("#UOMmsg").html("<span style='color:red'>Uom Already Available</span>");
+                }
+                else {
+                    $("#txtUOMpop").val('');
+                    $("#UOMmsg").html("<span style='color:Green'>Data Saved</span>");
+                    loadUOM();
+                }
+            }
+        });
+
+    }
+
+    function SubmitCategory() {
+        if ($('#txtCategoryPop').val() == '') {
+            return alert('Category is empty')
+        }
+        $.ajax({
+            url: "/Item/submitCategory",
+            method: "Post",
+            data: { Category: $('#txtCategoryPop').val() },
+            success: function (Result) {
+                if (Result == "0") {
+                    //$("#txtUOMpop").val('');
+                    $("#UOMmsg1").html("<span style='color:red'>!! Oops Something Went Wrong</span>");
+                }
+                else if (Result == "-1") {
+                    $("#txtCategoryPop").val('');
+                    $("#UOMmsg1").html("<span style='color:red'>Uom Already Available</span>");
+                }
+                else {
+                    $("#txtCategoryPop").val('');
+                    $("#UOMmsg1").html("<span style='color:Green'>Data Saved</span>");
+                    loadCategory();
+                }
+            }
+        });
+    }
+
+    function SubmitSubCategory() {
+        alert($('#txtSubcategoryPop').val());
+
+        if ($('#txtSubcategoryPop').val() == '') {
+            return alert('SubCategory is empty')
+        }
+        $.ajax({
+            url: "/Item/submitSubCategory",
+            method: "Post",
+            data: { Category: $('#ddCategory').val(), SubCategory: $('#txtSubcategoryPop').val() },
+            success: function (Result) {
+                if (Result == "0") {
+                    //$("#txtUOMpop").val('');
+                    $("#UOMmsg2").html("<span style='color:red'>!! Oops Something Went Wrong</span>");
+                }
+                else if (Result == "-1") {
+                    $("#txtSubcategoryPop").val('');
+                    $("#UOMmsg2").html("<span style='color:red'>Uom Already Available</span>");
+                }
+                else {
+                    $("#txtSubcategoryPop").val('');
+                    $("#UOMmsg2").html("<span style='color:Green'>Data Saved</span>");
+                }
+            }
+        });
+    }
+
+    function loadCategory() {
+        $.ajax({
+            url: "/Item/getCategory",
+            method: "Get",
+            //data: { UOM: $('#txtUOMpop').val() },
+            success: function (Result) {
+                $('#dd_category').empty();
+                $('#dd_category').append('<option value="0">-- Select Category --</option>')
+                if (Result.length > 0) {
+                    for (var i = 0; i < Result.length; i++) {
+                        $('#dd_category').append('<option value="' + Result[i]['category'] + '">' + Result[i]['category'] + '</option>')
+                    }
+                }
+            }
+        });
+    }
+
+    function loadUOM() {
+        $.ajax({
+            url: "/Item/getUOM",
+            method: "Get",
+            //data: { UOM: $('#txtUOMpop').val() },
+            success: function (Result) {
+                $('#dd_UOM').empty();
+                $('#dd_UOM').append('<option value="0">-- Select UOM --</option>')
+                if (Result.length > 0) {
+                    for (var i = 0; i < Result.length; i++) {
+                        $('#dd_UOM').append('<option value="' + Result[i]['UOM'] + '">' + Result[i]['UOM'] + '</option>')
+                    }
+                }
+            }
+        });
+    }
+
+    function bindSubcategory() {
+        $.ajax({
+            url: "/Item/getSubcategory",
+            method: "Get",
+            data: { Category: $('#dd_category').val() },
+            success: function (Result) {
+                $('#txt_subCategory').empty();
+                $('#txt_subCategory').append('<option value="0">-- Select SubCategory --</option>')
+                if (Result.length > 0) {
+                    for (var i = 0; i < Result.length; i++) {
+                        $('#txt_subCategory').append('<option value="' + Result[i]['sub_category'] + '">' + Result[i]['sub_category'] + '</option>')
+                    }
+                }
+            }
+        });
+    }
+
+    function CreateRawItem() {
+        $.ajax({
+            url: "/Item/CreateRaw",
+            method: "Get",
+            data: { RawItem: $('#txtRawItem').val(), RawItemCost: $('#txtRawItemCost').val() },
+            success: function (Result) {
+                if (Result == '1') {
+                    //alert('Raw Item Created Succesfully')
+                    //MsgCreateRawItem
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Green">Raw Item Created Succesfully...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                    $('#txtRawItem').val('');
+                    $('#txtRawItemCost').val('');
+                    $('#txtRawItem').focus();
+                    loadRawItem();
+                }
+                else if (Result == '0') {
+                    alert('Raw Item Not Created ')
+                }
+                else if (Result == '-1') {
+                    //alert('Raw Item Already Exists')
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Red">Raw Item Already Exists ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                    $('#txtRawItem').val('');
+                    $('#txtRawItemCost').val('');
+                    $('#txtRawItem').focus();
+
+                }
+                else {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Red">!! Oops Something Went Wrong ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                }
+            }
+        });
+    }
+
+    function AddRowRawItem() {
+        count++;
+        $('#tbl_rawItem').append('<tr><td><input type="text" id="txtRawItem' + count + '" class="txtbox ShapeFields" /></td><td><input type="text" id="txtRawItemQuantity' + count + '" class="form-control ShapeFields" /></td><td><a onclick="removerow(this)" style="cursor:pointer;">X</a></td></tr>');
+    }
+
+    function removerow(getId) {
+        $(getId).closest("tr").remove()
+    }
+    //testing
+    $(document).on('keydown', '.txtbox', function () {
+        var id = this.id;
+        $('#' + id).autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/Item/fetcRawItem",
+                    type: "Get",
+                    dataType: "json",
+                    data: { RawItem: request.term },
+                    success: function (data) {
+                        if (data.length > 0) {
+                            response($.map(data, function (item) {
+                                return { label: item.item_name, value: item.item_name, data: item.id };
+                            }))
+                        }
+                        else {
+                            $('#' + id).val('');
+                        }
+                    }
+                })
+            }
+            //select: function (event, ui) {
+            //    var GetNumericvalue = id.substring(12, id.length);
+            //    if ($("#txt_itemqty" + GetNumericvalue).val() != "" && $("#" + id).val() != "") {
+            //        $('#addMore2').removeAttr("disabled");
+            //        $('#btn_nsert').removeAttr("disabled");
+
+            //    }
+            //    var SendItemName = ui.item.data;
+            //    GetItemRate(SendItemName, id);
+            //}
+        });
+    });
+    //End
+    //End
+
+
+    //function fetchRawItem(txtrawitem) {
+    //    if ($('#txtRawItem2').val().length != 0) {
+    //        $.ajax({
+    //            url: "/Item/fetcRawItem",
+    //            method: "Get",
+    //            data: { RawItem: $('#txtRawItem2').val() },
+    //            success: function (Result) {
+    //                $('#txtRawItem2').val(Result.item_name)
+    //            }
+    //        });
+    //    }
+    //}
+
+    function loadRawItem() {
+
+        $.ajax({
+            url: '/Item/loadRawItems',
+            method: 'Get',
+            success: function (data) {
+
+                if (data.length > 0) {
+                    $('#tblRawItem').empty();
+                    //var head = '';
+                    //('#tblRawItem').append(head);
+                    for (var m = 0; m < data.length; m++) {
+
+
+                        if (data[m]["item_Active"] == 1) {
+
+                            var active = '<span style="color:green">Active</span>';
+                        }
+                        else {
+                            var active = '<span style="color:Red">DeActive</span>';
+                        }
+                        var details = '<tr><td>' + data[m]["ItemId"] + '</td>' +
+                            '<td>' + data[m]["item_name"] + '</td>' +
+                            '<td>' + data[m]["item_rate"] + '</td>' +
+                            '<td>' + active + '</td>' +
+                            '<td><input type = "submit" value="De/Active" class="btn btn-default" onclick = "DeActivate(' + data[m]["ItemId"] + ')" />' +
+                            '<input type="submit" value="Edit" class="btn btn-default" onclick="Edit(' + data[m]["ItemId"] + ')" /></td> ' +
+                            '</tr > ';
+
+                        $('#tblRawItem').append(details);
+                    }
+
+                }
+            }
+        });
+    }
+
+    function DeActivate(id) {
+        $.ajax({
+            url: '/item/ChangeSatusRawItem',
+            method: 'Get',
+            data: { id: id },
+            success: function (data) {
+                if (data == 1) {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Green">Raw Item Status Change Succesfully  ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                    $('#txtRawItem').val('');
+                    $('#txtRawItemCost').val('');
+                    loadRawItem();
+                }
+                else {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Red">Oops Something Went Wrong ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                }
+            }
+        });
+    }
+
+    function Edit(id) {
+        $.ajax({
+            url: '/item/EditRawItem',
+            method: 'Get',
+            data: { id: id },
+            success: function (data) {
+
+                $('#rawItemID').val(data.ItemId);
+                $('#txtRawItem').val(data.item_name);
+                $('#txtRawItemCost').val(data.item_rate);
+                $('#txtRawItem').focus();
+                $('#btnUpdateRawItem').show();
+                $('#btnCreateRawItem').hide();
+            }
+        });
+    }
+
+    function UpdateRawItem() {
+        
+        $.ajax({
+            url: '/item/UpdateRawItem',
+            method: 'Get',
+            data: { id: $('#rawItemID').val(), RawItemName: $('#txtRawItem').val(), RawItemCost: $('#txtRawItemCost').val() },
+            success: function (data) {
+                if (data > 0) {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Green">Raw Item Updated Succesfully  ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                    $('#rawItemID').val('');
+                    $('#txtRawItem').val('');
+                    $('#txtRawItemCost').val('');
+                    $('#btnUpdateRawItem').hide();
+                    $('#btnCreateRawItem').show();
+                    loadRawItem();
+                }
+                else {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Red">Oops Something Went Wrong  ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                }
+            }
+        });
+    }
+
+</script>
+
+<span id="rawItemID"></span>
+
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+<div class="form-horizontal">
+    <hr />
+    <span id="msg"></span>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Item Name</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_Item_Name" placeholder="Enter Item Name" onchange="checkItemName()" class="form-control ShapeFields" />
+
+        </div>
+        <div class="col-md-1">
+            <label id="lbl_userMSG"></label>
+        </div>
+        @*<div class="col-md-2">
+
+            </div>*@
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-1">
+            <label>Category</label>
+        </div>
+
+        <div class="col-md-3">
+            <select id="dd_category" class="form-control ShapeFields" onclick="bindSubcategory()">
+                <option value="0" selected>---Select---</option>
+                <option value="Conola">Conola</option>
+                <option value="WheatGrass">WheatGrass</option>
+                <option value="Olive">Olive</option>
+                <option value="Mustard">Mustard</option>
+                <option value="Mussli">Musli</option>
+                <option value="Capsule">Capsule</option>
+                <option value="Desi Ghee">Desi Ghee</option>
+            </select>
+
+        </div>
+        <div class="col-md-1">
+            <a style="cursor:pointer" class="fa fa-plus" Onclick="CategoryPopup()"> Category</a>
+        </div>
+        @*<div class="col-md-3">
+                <a style="cursor:pointer" class="fa fa-plus" Onclick="CategoryPopup()"> Category</a>
+            </div>*@
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Sub Category</label>
+        </div>
+
+        <div class="col-md-3">
+            @*<input type="text" id="txt_subCategory" placeholder="Enter Sub Category" class="form-control ShapeFields" />*@
+            <select id="txt_subCategory" class="form-control ShapeFields">
+                <option value="0">-- Select SubCategory --</option>
+            </select>
+
+        </div>
+        <div class="col-md-1">
+            <a style="cursor:pointer" class="fa fa-plus" Onclick="SubCategoryPopup()"> SubCategory</a>
+        </div>
+        @*<div class="col-md-3">
+                <a style="cursor:pointer" class="fa fa-plus" Onclick="SubCategoryPopup()"> SubCategory</a>
+            </div>*@
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-1">
+            <label>UOM</label>
+        </div>
+
+        <div class="col-md-3">
+            <select id="dd_UOM" class="form-control ShapeFields">
+                <option value="0">--- Select UOM ---</option>
+                <option value="Liters">Liters</option>
+                <option value="Box">Box</option>
+                <option value="Dozen">Dozen</option>
+                <option value="Gram">Gram</option>
+            </select>
+
+        </div>
+        <div class="col-md-1">
+            <a style="cursor:pointer" class="fa fa-plus" title="Add UOM" Onclick="UOMpopup()"> UOM</a>
+        </div>
+        @*<div class="col-md-1">
+                <a style="cursor:pointer" class="fa fa-plus" title="Add UOM" Onclick="UOMpopup()"> UOM</a>
+            </div>*@
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>UOM Value</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_UOM_Value" placeholder="Enter UOM Values" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" class="form-control ShapeFields" />
+        </div>
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-2">
+            <label>Rate</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="number" min="0" step="any" id="txt_Rate" placeholder="Enter Rate" class="form-control ShapeFields" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Scheme Name</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_Scheme_Name" placeholder="Enter Scheme Name" class="form-control ShapeFields" />
+        </div>
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-2">
+            <label>Scheme value</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="number" min="0" step="any" id="txt_Scheme_values" placeholder="Enter Scheme values" class="form-control ShapeFields" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Scheme Qty</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_Scheme_qty" placeholder="Enter Scheme Quantity" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" class="form-control ShapeFields" />
+        </div>
+        @*</div>
+
+
+            <div class="form-group">*@
+        <div class="control-label col-md-2">
+            <label>GST%</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" min="0" step="any" id="txt_gst" placeholder="Enter GST%" onchange="getper()" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" class="form-control ShapeFields" />
+
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Raw Items</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_rawItem" placeholder="Select Raw Items" onclick="$('#popRawItem').modal('show');" onfocus="$('#popRawItem').modal('show');" style="cursor:pointer" class="form-control ShapeFields" readonly />
+
+        </div>
+        @*</div>
+            <div class="form-group">*@
+        @*<div class="control-label col-md-2">
+                <label>Item Image</label>
+            </div>*@
+
+        @*<div class="col-md-3">
+                <input type="file" class="form-control" id="txtFileUpload" onchange="loadFile(event)" />
+                <img id="img1" style="height:100px;width:100px" />
+            </div>*@
+    </div>
+    <br />
+    <div class="form-group">
+        <div class="col-md-offset-5 col-md-3">
+            @{if (Convert.ToString(Session["Insert"]) == "true")
+                {
+                    <a class="btn btn-primary ButtonShape" onclick="ItemSubmit()">
+                        <i class="fa fa-save"></i>  Submit
+                    </a>
+                }
+            }
+            @{
+                if (Convert.ToString(Session["View"]) == "true")
+                {
+                    <a class="btn btn-primary ButtonShape" onclick="location.reload();">
+                        <i class="fa fa-refresh"></i> Clear
+                    </a>
+                    @*<input type="submit" value="Submit" onclick="ItemSubmit()" class="btn btn-primary" /> &nbsp;&nbsp;
+                        <input type="submit" value="Clear" onclick="location.reload();" class="btn btn-primary" />*@
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<div>
+    @{
+        if (Convert.ToString(Session["View"]) == "true")
+        {
+            @*<a href="~/Item/Index">  <input type="button" value="Back" class="btn btn-info" /></a>*@
+            <a href="~/Item/Index" class="btn btn-info ButtonShape">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        }
+    }
+</div>
+
+<div class="modal fade" id="UOMpopup" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">UOM Details</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-sm table">
+                    <label id="UOMmsg"></label>
+                    <table class="table-responsive">
+                        <tr>
+                            <td><h4>Uom Name</h4></td>
+                            <td>
+                                <input type="text" id="txtUOMpop" class="form-control ShapeFields" />
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table id="tblUOMdetails" class="table-responsive"></table>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary ButtonShape" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary ButtonShape" onclick="SubmitUOM()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="CategoryPopUp" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">Category Details</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-sm table">
+                    <label id="UOMmsg1"></label>
+                    <table class="table-responsive">
+                        <tr>
+                            <td><h4>Category Name</h4></td>
+                            <td>
+                                <input type="text" id="txtCategoryPop" class="form-control ShapeFields" />
+                            </td>
+                        </tr>
+                    </table>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary ButtonShape" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary ButtonShape" onclick="SubmitCategory()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="SubCategoryPopUp" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">SubCategory Details</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-sm table">
+                    <label id="UOMmsg2"></label>
+                    <table class="table-responsive">
+                        <tr>
+                            <td><h4>Category</h4></td>
+                            <td>
+                                <select id="ddCategory" class="form-control ShapeFields" width="10px"></select>
+                            </td>
+                            <td><h4> &nbsp;&nbsp;&nbsp; Sub Category</h4></td>
+                            <td>
+                                <input type="text" id="txtSubcategoryPop" class="form-control ShapeFields" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary ButtonShape" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary ButtonShape" onclick="SubmitSubCategory()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="popRawItem" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">Add Item Details</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ui-front">
+                <div class="col-md-12">
+                    <div class="col-md-offset-6 col-md-6">
+                        <button type="button" class="btn btn-primary ButtonShape" onclick="$('#createpopRawItem').modal('show'); loadRawItem();">Create Raw Item</button>
+                        <br />
+                    </div>
+                    <br />
+                </div>
+                <br />
+                <div class="table-sm table">
+                    <label id="UOMmsg"></label>
+                    <div class="col-md-12">
+                        <table id="tbl_rawItem" class="table-responsive">
+                            <tr>
+                                <th><h5> Raw Item</h5></th>
+                                <th><h5>Quantity</h5> </th>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="txtRawItem0" class="txtbox ShapeFields" /></td>
+                                <td><input type="text" id="txtRawItemQuantity0" class="form-control ShapeFields" /></td>
+                            </tr>
+                        </table>
+                        <br />
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary ButtonShape" onclick="AddRowRawItem()">Add Row</button>
+                    <button type="button" class="btn btn-secondary ButtonShape" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createpopRawItem" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">Create Raw Item</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <span id="MsgCreateRawItem"></span>
+            </div>
+            <div class="modal-body">
+                <div class="table-sm table">
+                    <label id="UOMmsg"></label>
+                    <div class="col-md-12">
+                        <div class="col-lg-offset-2 col-md-4"><h4> Raw Item</h4></div>
+                        <div class="col-md-6">
+                            <input type="text" id="txtRawItem" class="form-control ShapeFields" />
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="col-lg-offset-2 col-md-4"><h4> Raw Item Cost</h4></div>
+                        <div class="col-md-6">
+                            <input type="text" id="txtRawItemCost" class="form-control ShapeFields" />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-offset-6 col-md-6">
+                            <button type="button" id="btnCreateRawItem" class="btn btn-primary ButtonShape" onclick="CreateRawItem()">Create</button>
+                            <button type="button" id="btnUpdateRawItem" class="btn btn-primary ButtonShape" onclick="UpdateRawItem()">Update</button>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary ButtonShape" data-dismiss="modal">Close</button>
+                </div>
+                <div class="panel-body table-responsive Boxdesign">
+                    
+                    <div class="col-lg-12" >
+                        <table class="table">
+                            <thead>
+                                <tr class="info" style="cursor:pointer;">
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Cost</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="tblRawItem"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

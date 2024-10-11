@@ -1,0 +1,165 @@
+﻿
+@{
+    ViewBag.Title = "DailyCallDashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>Daily Call Dashboard</h2>*@
+
+<style>
+    .rcorners2 {
+        /*border-radius: 25px;*/
+        padding: 20px;
+        height: 20px;
+        font-size: 20px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    th {
+        background-color: lightblue;
+        font-size: 25px;
+        text-align: center;
+    }
+
+
+    .Table {
+        display: table;
+    }
+
+    .Title {
+        display: table-caption;
+        text-align: center;
+        font-weight: bold;
+        font-size: larger;
+    }
+
+    .Heading {
+        display: table-row;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .Row {
+        display: table-row;
+    }
+
+    .Cell {
+        display: table-cell;
+        /*border: solid;*/
+        border-width: thin;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+</style>
+
+<script>
+    var i = 1000;
+    setInterval(function () {
+        //code goes here that will be run every 5 seconds.
+
+        //i--
+        //$('#lbl').html(i);
+        loaddata();
+
+    }, 1000);
+
+    function loaddata() {
+
+        $.ajax({
+            url: "/callerLeads/fetchDailyCallDashboard",
+            method: "Post",
+            success: function (result) {
+                if (result.length > 0) {
+                    $('#tbl_PandingOrder').empty();
+                    $('#tbl_PandingOrder').append('<tr><th>Caller Name</th><th>Total Call</th><th>Productive Call</th><th>Total Order</th><th>Total Amount</th><th>Working Time</th><th>Break Time</th></tr>');
+                    for (var i = 0; i < result.length; i++) {
+
+                        $('#tbl_PandingOrder').append('<tr style="background-color:' + result[i]["Break"] + '">' +
+                            //'<td class="rcorners2">' + result[i]["id"] + '</td>' +
+                            '<td class="rcorners2">' + result[i]["CallerName"] + ' (' + result[i]["id"] + ')</td>' +
+                            '<td class="rcorners2">' + result[i]["TotalCall"] + '</td>' +
+                            '<td class="rcorners2">' + result[i]["IntrestedCall"] + '</td>' +
+                            '<td class="rcorners2">' + result[i]["totalorder"] + '</td>' +
+                            '<td class="rcorners2">' + result[i]["TotalAmount"] + '</td>' +
+                            '<td class="rcorners2">' + result[i]["workingHour"] + '</td>' +
+                            '<td class="rcorners2">' + result[i]["breakHour"] + '</td>' +
+                            '</tr>');
+                        //$('#tbl_PandingOrder').append('<div class="Row" style="background-color:' + result[i]["Break"] + '"' +
+                        //    '<div class="Cell">' +
+                        //    '<div class="col-md-2">' +result[i]["CallerName"] + ' (' + result[i]["id"] + ')' +'</div>' +
+                        //    '<div class="col-md-2">' + result[i]["TotalCall"]+'</div>'+
+                        //    '<div class="col-md-2">' + result[i]["IntrestedCall"] +'</div>'+
+                        //    '<div class="col-md-2">' + result[i]["totalorder"]  +'</div>'+
+                        //    '<div class="col-md-2">' + esult[i]["TotalAmount"] +
+                        //    //'<p>' + result[i]["CallerName"] + ' (' + result[i]["id"] + ')'
+                        //    // + result[i]["TotalCall"]
+                        //    // +result[i]["IntrestedCall"]
+                        //    // +result[i]["totalorder"]
+                        //    // +result[i]["TotalAmount"] + '</p>' +
+                        //    '</div></div>');
+                    }
+                }
+            }
+        });
+    }
+
+</script>
+
+
+<div class="col-lg-12">
+    <br />
+    <div class="panel panel-primary">
+        <div class="panel-heading"><h4><a data-toggle="collapse" href="#PandingOrder" role="button" aria-expanded="false" aria-controls="PandingOrder" style="color:white;text-align:center"><h2>Callers Performance Details of <label id="lbl">@System.DateTime.Now.ToString("dd/MMMM/yyyy")</h2> </label> </a></h4></div>
+        <div class="panel-body">
+            <div class="table-responsive" id="PandingOrder">
+                <table id="tbl_PandingOrder" class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Caller Name</th>
+                            <th>Total Call</th>
+                            <th>Productive Call</th>
+                            <th>Total Order</th>
+                            <th>Total Amount</th>
+                            <th>Working Time</th><th>Break Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                @*<div class="Table">
+                        <div class="Heading">
+                            <div class="Cell"><p>Total Call</p></div>
+
+                            <div class="Cell">
+                                <p>
+
+                                    Productive Call
+                                </p>
+                            </div>
+                            <div class="Cell">
+                                <p>
+                                    Total Order
+                                </p>
+                            </div>
+
+                            <div class="Cell">
+                                <p>
+                                    Total Amount
+                                </p>
+                            </div>
+                        </div>
+                        <div class="Row" id="tbl_PandingOrder">
+                            <div class="Cell">
+                                <p>
+                                    Praveen
+                                </p>
+                            </div>
+                        </div>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,125 @@
+﻿@model Call_Centre_Management.Models.orderDetails_model
+@{
+    ViewBag.Title = "Orders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2>Index</h2>*@
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        test();
+    });
+
+    function test() {
+        //var j = 0;
+        //for (var i = 1; i <= 9; i++) {
+        //    for (var j = 1; j <= i; j++) {
+        //        $('#Spanid').append("*" + i + j + "");
+        //    }
+        //    $('#Spanid').append("</br>");
+        //}
+        debugger;
+
+        for ( var i = 9; i >=0; i--) {
+
+            for (var j = 0; j <= i; j++)
+            {
+                $('#Spanid').append("*" + i + j + "");
+            }
+            $('#Spanid').append("</br>");
+        }
+
+    }
+
+    //function fetchData(url) {
+    //    //  var fromDate = $('#fromDate').val();
+    //    // var toDate = $('#toDate').val();
+
+    //    var orderStatus = $('#dd_orderStatus').val();
+    //    var state = $('#stateId').val();
+    //    var zone = $('#zoneId').val();
+    //    var area = $('#AreaId').val();
+
+    //    var assign = $('#dd_assign').val();
+
+
+    //    //if (zone === null) zone = -1;
+    //    //if (distributor === null) distributor = -1;
+    //    //if (toDate === '') toDate = fromDate;
+    //    if (ddassign.val() > 0) {
+    //        $('#loader').show();
+    //        $.ajax({
+    //            type: "POST",
+    //            datatype: "json",
+    //            traditional: true,
+    //            url: url,
+    //            data: { state: state, zone: zone, area: area, PersonGroup: personGroup },
+    //            success: function (data) {
+    //                $('#excelDownload').fadeIn().attr('href', data[0]);
+    //                data = data[1];
+    //                saleReportBind(data['salesReport']);
+    //                ItemstableBind(data['items']);
+    //                LocationTableBind(data['locationData'], data);
+    //                $('#loader').hide();
+    //                $('#emailButton').show();
+    //            },
+    //            error: function () {
+    //                $('#loader').hide();
+    //                ShowMessage("ERROR", "error");
+    //            }
+    //        });
+    //    }
+    //    else {
+    //        alert("Please Enter Correct Dates!!");
+    //    }
+</script>
+
+
+<div>
+    <h1><span id="Spanid" style="color:black"></span></h1>
+</div>
+
+@*<table id="mainTable" class="table table-striped table-hover">
+
+        <thead>
+            <tr>
+                <th>Order Status</th>
+                <th>State</th>
+                <th>Zone</th>
+                <th>Area</th>
+                <th>Asign</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="t1">
+                <td>
+                    <select id="dd_orderStatus" class="form-control">
+                        <option value="1">Pending</option>
+                        <option value="2">Deliverd</option>
+                        <option value="3">Cancel</option>
+                        <option value="4">Return</option>
+                    </select>
+                </td>
+                <td>@Html.DropDownListFor(m => m.stateId, (SelectList)ViewBag.states, new { @class = "form-control", onchange = "DdlChange(this.value, '/Common/GetZones', '#zoneId'); DdlChange(this.value, '/Distributor/GetDistributorByState', '#distributors');", @multiple = "multiple" })</td>
+                <td>@Html.DropDownListFor(m => m.zoneId, Enumerable.Empty<SelectListItem>(), new { @class = "form-control", onchange = "DdlChange(this.value, '/Common/GetArea', '#AreaId');" })</td>
+                <td>@Html.DropDownListFor(m => m.AreaId, Enumerable.Empty<SelectListItem>(), new { @class = "form-control" })</td>
+
+                <td>
+                    <select id="dd_assign" onchange="searchdata()" class="form-control">
+                        <option value="0">--Select--</option>
+                        <option value="1">Assign Order</option>
+                        <option value="2">Not Assign Order</option>
+                    </select>
+                </td>
+                <td>
+                    <input id="btn_nsert" type="button" value="Submit" onclick="Insert_Order()" class="btn btn-sm btn-info" />
+                    <input type="button" value="SUBMIT" onclick="fetchData('/OrderViewDetails/fetch_data')" class="btn btn-primary" />
+
+                </td>
+
+
+            </tr>
+        </tbody>
+    </table>*@

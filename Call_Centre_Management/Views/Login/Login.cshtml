@@ -1,0 +1,1004 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+    if (Session["user_name"] == null)// || Session["user_name"] == "")
+    {
+        Response.Redirect("/Login/Employee_Login");
+    }
+}
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+<style type="text/css">
+    .button {
+        display: inline-block;
+        padding: 15px 25px;
+        font-size: 24px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: #fff;
+        background-color: #4CAF50;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 9px #999;
+    }
+
+        .button:hover {
+            background-color: #3e8e41
+        }
+
+        .button:active {
+            background-color: #3e8e41;
+            box-shadow: 0 5px #666;
+            transform: translateY(4px);
+        }
+
+
+    /*highChart*/
+    .highcharts-figure, .highcharts-data-table table {
+        min-width: 320px;
+        max-width: 800px;
+        margin: 1em auto;
+    }
+
+    .highcharts-data-table table {
+        font-family: Verdana, sans-serif;
+        border-collapse: collapse;
+        border: 1px solid #EBEBEB;
+        margin: 10px auto;
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .highcharts-data-table caption {
+        padding: 1em 0;
+        font-size: 1.2em;
+        color: #555;
+    }
+
+    .highcharts-data-table th {
+        font-weight: 600;
+        padding: 0.5em;
+    }
+
+    .highcharts-data-table td, .highcharts-data-table th, .highcharts-data-table caption {
+        padding: 0.5em;
+    }
+
+    .highcharts-data-table thead tr, .highcharts-data-table tr:nth-child(even) {
+        background: #f8f8f8;
+    }
+
+    .highcharts-data-table tr:hover {
+        background: #f1f7ff;
+    }
+
+
+    input[type="number"] {
+        min-width: 50px;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        getOrder(0);
+        $("#DisplayMonthlyItem").hide();
+        loadddStateTotakSale();
+        loadPieChartOfOrderSaleOfMonth(0);
+        LoadPiechartOfOrderStatusOfMonth(0);
+        GetOrderStatusCount(0);
+        GetOrderCancelList();
+    });
+
+    function FilltersRecord(SearchId, TblId) {
+        if (SearchId != '' && TblId != '') { //This Condition Not compulsory
+            var GetsearchId = $(SearchId).attr("id");
+            var value = $("#" + GetsearchId).val().toLowerCase();
+            $("#" + TblId + " tr").filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        }
+    }
+
+    function LoadPiechartOfOrderStatusOfMonth(id) {
+        $.ajax({
+            url: "/Login/OrderStatusOfMonth",
+            type: 'Get',
+            data: { id: id },
+            success: function (data) {
+                Highcharts.chart('charts', {
+                    chart: {
+                        plotBackgroundColor: null,
+                        plotBorderWidth: null,
+                        plotShadow: false,
+                        type: 'pie',
+                    },
+                    title: {
+                        text: 'Orders Status'
+                    }, tooltip: {
+                        pointFormat: '{series.name}:{point.y:f}'
+                    },
+
+                    accessibility: {
+                        point: {
+                            valueSuffix: '%'
+                        }
+                    },
+                    plotOptions: {
+                        pie: {
+                            allowPointSelect: true,
+                            cursor: 'pointer',
+                            dataLabels: {
+                                enabled: true,
+                                format: '<b>{point.y:f}</b>',
+                                distance: -20,
+                            },
+                            showInLegend: true
+                        }
+                    },
+                    series: [{
+                        name: 'Status',
+                        colorByPoint: true,
+                        data: data
+
+                    }]
+                });
+            }
+        });
+    }
+
+    function loadPieChartOfOrderSaleOfMonth(id) {
+        $.ajax({
+            url: "/Login/OrderSaleOfMonth",
+            type: 'Get',
+            data: { id: id },
+            success: function (data) {
+                $('#loading').fadeOut();
+                Highcharts.chart('chartContainer', {
+                    chart: {
+                        plotBackgroundColor: null,
+                        plotBorderWidth: null,
+                        plotShadow: false,
+                        type: 'pie'
+                    },
+                    title: {
+                        text: 'Zones OrderSale'
+                    }, tooltip: {
+                        pointFormat: '{series.name}: <b>{point.y:f}</b>'
+                    },
+
+                    accessibility: {
+                        point: {
+                            valueSuffix: '%'
+                        }
+                    },
+                    plotOptions: {
+                        pie: {
+                            allowPointSelect: true,
+                            cursor: 'pointer',
+
+                            dataLabels: {
+                                enabled: true,
+                                format: '<b>{point.y:f}</b>',
+                                distance: -20
+                            },
+                            showInLegend: true
+                        }
+                    },
+                    series: [{
+                        name: 'Sale',
+                        colorByPoint: true,
+                        data: data
+                    }]
+                });
+            }
+        });
+    }
+
+    function loadddStateTotakSale() {
+
+        $.ajax({
+            url: "/Login/loadddStateTotalSale",
+            type: 'Post',
+            success: function (data) {
+                if (data.length > 0) {
+                    $.each(data, function (key, value) {
+                        var stateOption = $('<option>');
+                        stateOption.attr('Value', value.Id).text(value.StateName);
+                        $('#ddStateTotalSale').append(stateOption);
+                    });
+                }
+            }
+        });
+    }
+    //function loadPieChart() {
+    //    var i = 0;
+    //    $.ajax({
+    //        url: "/Login/OrderSaleOfMonth",
+    //        method: "Get",
+    //        success: (function (Result) {
+    //            console.log(Result);
+    //            var chart = new CanvasJS.Chart("chartContainer", {
+    //                //title: {
+    //                //    text: "Desktop Search Engine Market Share, Jul-2016"
+    //                //},
+    //                animationEnabled: true,
+    //                exportEnabled: true,
+    //                legend: {
+    //                    verticalAlign: "center",
+    //                    horizontalAlign: "right",
+    //                    fontSize: 15,
+    //                    fontFamily: "Helvetica"
+    //                },
+    //                theme: "light1",
+    //                data: [
+    //                    {
+    //                        type: "pie",
+    //                        indexLabelFontFamily: "Garamond",
+    //                        indexLabelFontSize: 15,
+    //                        indexLabelPlacement: "inside",
+    //                        indexLabelFontColor: "#12122B",
+    //                        indexLabel: "{y}%",
+    //                        startAngle: -20,
+    //                        showInLegend: true,
+    //                        toolTipContent: "{legendText} {y}%",
+    //                        responsive: true,
+    //                        dataPoints: [
+    //                            { y: 62, legendText: "Google", label: "Google" },
+    //                            { y: 11, legendText: "Bing", label: "Bing" },
+    //                            { y: 07, legendText: "Yahoo!", label: "Yahoo!" },
+    //                            { y: 07, legendText: "Baidu", label: "Baidu" },
+    //                            { y: 05, legendText: "Ask", label: "Ask" },
+    //                            { y: 05, legendText: "AOL", label: "AOL" },
+    //                            { y: 01, legendText: "Others", label: "Others" }
+    //                        ]
+    //                    }
+    //                ]
+    //            });
+    //            chart.render();
+    //        })
+    //    });
+    //}
+    function getOrder(id) {
+        $.ajax({
+            url: "/Order/TotalOrder",
+            method: "Post",
+            data: { id: id },
+            success: function (data) {
+                $('#dailyOrder').html(data.todayTotalOrder);
+                $('#monthlyOrder').html(data.monthlyTotalOrder);
+
+                $('#tbl_monthOrder').empty();
+                var header = '<thead>' +
+                    '<tr class="info" >' +
+                    '<th>Position</th>' +
+                    '<th>Name</th>' +
+                    '<th>Order</th>' +
+                    '</tr >' +
+                    '</thead>'
+                $('#tbl_monthOrder').append(header);
+
+                if (data.MonthEmpPer.length > 0) {
+                    for (var i = 0; i < data.MonthEmpPer.length; i++) {
+                        var j = parseInt(i) + 1;
+                        var val = '<tbody>' + '<tr>' +
+                            '<td>' + j + '</td>' +
+                            '<td>' + data.MonthEmpPer[i]["empName"] + '</td>' +
+                            '<td>' + data.MonthEmpPer[i]["totalOrder"] + '</td>' +
+                            '</tr>' //+ '</table>'
+                        $('#tbl_monthOrder').append(val);
+                    }
+                }
+
+                $('#tbl_todayOrder').empty();
+                var header1 = '<thead>' +
+                    '<tr class="info">' +
+                    '<th>Position</th>' +
+                    '<th>Name</th>' +
+                    '<th>Order</th>' +
+                    '</tr >' +
+                    '</thead>'
+                $('#tbl_todayOrder').append(header1);
+
+                if (data.TodayEmpPer.length > 0) {
+                    for (var ii = 0; ii < data.TodayEmpPer.length; ii++) {
+                        var jj = parseInt(ii) + 1;
+                        var val = '<tbody>' + '<tr>' +
+                            '<td>' + jj + '</td>' +
+                            '<td>' + data.TodayEmpPer[ii]["empName"] + '</td>' +
+                            '<td>' + data.TodayEmpPer[ii]["totalOrder"] + '</td>' +
+                            '</tr>' //+ '</table>'
+                        $('#tbl_todayOrder').append(val);
+                    }
+                }
+
+            }
+        });
+    }
+
+    function fetchDailyOrderCategory() {
+        var id = $('#ddStateTotalSale').val();
+        $('#loading').show();
+        $.ajax({
+            url: "/Order/TotalDailyOrder",
+            method: "Post",
+            data: { id: id },
+            success: function (data) {
+                $('#loading').fadeOut();
+                $('#tblDailyOrder').empty();
+                var header = '<thead>' +
+                    '<tr class="info" >' +
+                    '<th>No</th>' +
+                    '<th>Category</th>' +
+                    '<th>Quantity</th>' +
+                    '<th>UOM</th>' +
+                    '<th>Value</th>' +
+                    '</tr >' +
+                    '</thead>'
+                $('#tblDailyOrder').append(header);
+                if (data.length > 0) {
+
+                    for (var i = 0; i < data.length; i++) {
+                        var j = parseInt(i) + 1;
+                        var val = '<tbody>' + '<tr>' +
+                            '<td>' + j + '</td>' +
+                            '<td>' + data[i]["Category"] + '</td>' +
+                            '<td>' + data[i]["order"] + '</td>' +
+                            '<td>' + data[i]["Uom"] + '</td > ' +
+                            '<td>' + data[i]["Value"] + '</td > ' +
+                            '</tr>' //+ '</table>'
+                        $('#tblDailyOrder').append(val);
+                    }
+                }
+                //else { $('#ErrorNoDataDailyOrder').html('<font color="Red">Sorry No Record Available..</font>'); }
+            }
+        });
+    }
+
+    function fetchMonthlyOrderCategory() {
+        $('#loading').show();
+        var id = $('#ddStateTotalSale').val();
+        $.ajax({
+            url: "/Order/OrderMonthlywithcategory",
+            method: "Post",
+            data: { id: id },
+            success: function (data) {
+                $('#loading').fadeOut();
+                $('#tblMonthlyOrder').empty();
+
+                var header = '<thead>' +
+                    '<tr class="info" >' +
+                    '<th>No</th>' +
+                    '<th>Category</th>' +
+                    '<th>Quantity</th>' +
+                    '<th>UOM</th>' +
+                    '<th>Value</th>' +
+                    '</tr >' +
+                    '</thead>'
+                $('#tblMonthlyOrder').append(header);
+
+                if (data.length > 0) {
+                    for (var i = 0; i < data.length; i++) {
+                        var j = parseInt(i) + 1;
+                        var val = '<tbody>' + '<tr>' +
+                            '<td>' + j + '</td>' +
+                            '<td>' + "<a onclick='Displaycategorywiseitem(this)' value=" + data[i]["Category"] + ">" + data[i]["Category"] + "</a>" + '</td>' +
+                            '<td>' + data[i]["order"] + '</td>' +
+                            '<td>' + data[i]["Uom"] + '</td > ' +
+                            '<td>' + data[i]["Value"] + '</td > ' +
+                            '</tr>' //+ '</table>'
+                        $('#tblMonthlyOrder').append(val);
+                    }
+                }
+                else { $("#ErrorNoDataMonthlyOrder").html('<font color="Red">Sorry No Record Available..</font>'); }
+            }
+        });
+    }
+
+    //function clearMonth() {
+    //    //tblMonthlyOrder
+    //    $('#tblMonthlyOrder').empty();
+    //}
+    //function clearToday() {
+    //    $('#tblDailyOrder').empty();
+
+    //}
+    //function Displaycategorywiseitem(Getcategoryname) {
+    //    var GetCategoryValue = $(Getcategoryname).attr("value");
+    //    $.ajax({
+    //        url: "/Order/OrderMonthlywithcategoryList",
+    //        method: "Post",
+    //        data: { GetCategoryName: GetCategoryValue },
+    //        success: function (Result) {
+
+    //        }
+    //    });
+    //}
+
+    function Displaycategorywiseitem(Getcategoryname) {
+        $('#loading').show();
+        //var GetCategoryValue = $(Getcategoryname).attr("value");
+        var GetCategoryValue = $(Getcategoryname).html();
+        $.ajax({
+            url: "/Order/OrderMonthlywithcategoryList",
+            method: "Post",
+            data: { GetCategoryName: GetCategoryValue },
+            success: function (Result) {
+                $('#loading').fadeOut();
+                $("#DisplayMonthlyItem").show();
+                $('#tblMonthlyOrders').empty();
+                $('#DisplayCategoryName').text('');
+
+                var header = '<thead>' +
+                    '<tr class="info">' +
+                    //'<th>Item Id</th>' +
+                    '<th>Item Name</th>' +
+                    '<th>Item Quantity</th>' +
+                    '<th>Item Rate</th>' +
+                    '<th>Item Total Amount</th>' +
+                    '</tr >' +
+                    '</thead>'
+                $('#tblMonthlyOrders').append(header);
+
+                $.each(Result, function (index, value) {
+                    // $('#DisplayCategoryName').html("<h4 style='text-align:center'>" + value.CategoryName + "</h4>");
+                    $('#DisplayCategoryName').html(value.CategoryName + ' ' + '<button   type="button" class="close" onclick="Removepaneldiv()">&times;</button>');
+                    $("#tblMonthlyOrders").append(
+                        '<tr>' +
+                        //'<td>' + value.ItemId + '</td>' +
+                        '<td>' + value.item_name + '</td>' +
+                        '<td>' + value.item_qty + '</td>' +
+                        '<td>' + value.item_rate + '</td>' +
+                        '<td>' + value.item_total_amount + '</td>' +
+                        '</tr>'
+                    );
+                });
+            }
+        });
+    }
+
+    function Removepaneldiv() {
+        $("#DisplayMonthlyItem").hide(1000);
+        $('#tblMonthlyOrders').empty();
+        $('#DisplayCategoryName').text('');
+    }
+
+    function monthExel() {
+
+        window.location.href = "/Login/downloadExelMonth"
+    }
+
+    function TodayExel() {
+
+        window.location.href = "/Login/downloadExelToday"
+    }
+
+    function bind_Pie() {
+        $('#loading').show();
+        var id = $('#ddStateTotalSale').val();
+
+        loadPieChartOfOrderSaleOfMonth(id);
+        LoadPiechartOfOrderStatusOfMonth(id);
+        getOrder(id);
+        fetchDailyOrderCategory();
+        fetchMonthlyOrderCategory();
+        GetOrderStatusCount(id);
+    }
+
+    function GetOrderStatusCount(id) {
+        //var id = $('#ddStateTotalSale').val();
+        $.ajax({
+            url: "/Order/GetOrderStatusCountList",
+            method: "Get",
+            data: { id: id },
+            success: function (data) {
+                $('#tbl_PandingOrder').empty();
+
+                var header = '<thead>' +
+                    '<tr class="info" >' +
+                    '<th>No</th>' +
+                    '<th>Days</th>' +
+                    '<th>Pending Sum of Quantity</th>' +
+                    '<th>Assign Order</th>' +
+                    '</tr >' +
+                    '</thead>'
+                $('#tbl_PandingOrder').append(header);
+
+                for (var i = 0; i < data.GetStatus.length; i++) {
+                    var j = parseInt(i) + 1;
+                    var val = '<tbody>' + '<tr>' +
+                        '<td>' + j + '</td>' +
+                        '<td>' + data.GetStatus[i]["Pendingdays"] + '</td>' +
+                        '<td>' + data.GetStatus[i]["pandingSumofqty"] + '</td>' +
+                        '<td>' + data.GetStatus[i]["AssignOrder"] + '</td > ' +
+                        '</tr>'
+                    $('#tbl_PandingOrder').append(val);
+                }
+
+                $('#tbl_DeliveryOrder').empty();
+
+                var headers = '<thead>' +
+                    '<tr class="info" >' +
+                    '<th>No</th>' +
+                    '<th>Days</th>' +
+                    '<th>Delivery Sum of Quantity</th>' +
+                    '</tr >' +
+                    '</thead>'
+                $('#tbl_DeliveryOrder').append(headers);
+                for (var j = 0; j < data.GetStatuss.length; j++) {
+                    var k = parseInt(j) + 1;
+                    var vals = '<tbody>' + '<tr>' +
+                        '<td>' + k + '</td>' +
+                        '<td>' + data.GetStatuss[j]["Deliverydays"] + '</td>' +
+                        '<td>' + data.GetStatuss[j]["DeliverySumofqty"] + '</td>' +
+                        '</tr>'
+                    $('#tbl_DeliveryOrder').append(vals);
+                }
+            }
+        });
+    }
+
+    function GetOrderCancelList() {
+        $.ajax({
+            url: "/Login/CancelOrderDashbord",
+            method: "Get",
+            success: (function (Result) {
+                var header = '<thead>' +
+                    '<tr class="info" >' +
+                    '<th>S.No</th>' +
+                    '<th>Order Id</th>' +
+                    '<th>Caller Name</th>' +
+                    '<th>Customer Name</th>' +
+                    '<th>Customer Mobile Number</th>' +
+                    '<th>Item Name</th>' +
+                    '<th>Cancel Date</th>' +
+                    '</tr >' +
+                    '</thead>'
+                $('#top20CancelOrder').append(header);
+                if (Result.length > 0) {
+                    for (var i = 0; i < Result.length; i++) {
+                        var j = parseInt(i) + 1;
+                        var val = '<tbody>' + '<tr>' +
+                            '<td>' + j + '</td>' +
+                            '<td>' + Result[i]["id"] + '</td>' +
+                            '<td>' + Result[i]["callerName"] + " (" + Result[i]["CallerId"] + ")" + '</td>' +
+                            '<td>' + Result[i]["cust_name"] + '</td > ' +
+                            '<td>' + Result[i]["cust_mobile"] + '</td > ' +
+                            '<td>' + Result[i]["item_name"] + " (" + Result[i]["ItemId"] + ")" + '</td > ' +
+                            '<td>' + Result[i]["deliveryDate"] + '</td > ' +
+                            '</tr>' //+ '</table>'
+                        $('#top20CancelOrder').append(val);
+                    }
+                }
+
+            })
+        });
+    }
+
+
+    function LoadApproval() {
+        $.ajax({
+            url: '/Login/Approvaldata',
+            method: 'Get',
+            success: function (data) {
+
+                if (data.listPendingOrder.length > 0) {
+
+                    $('#PendingOrderbody').empty();
+                    for (var x = 0; x < data.listPendingOrder.length; x++) {
+                        var PendingBody = '<tr><td>' + data.listPendingOrder[x]["id"] + '</td>' +
+                            '<td>' + data.listPendingOrder[x]["orderid"] + '</td>' +
+                            '<td>' + data.listPendingOrder[x]["custMobile"] + '</td>' +
+                            '<td>' + data.listPendingOrder[x]["custName"] + '</td>' +
+                            '<td>' + data.listPendingOrder[x]["totalAmount"] + '</td>' +
+                            '<td>' + data.listPendingOrder[x]["totalQty"] + '</td>' +
+                            '<td>' + data.listPendingOrder[x]["Address"] + '</td>' +
+                            '<td>' + data.listPendingOrder[x]["Remark"] + '</td>' +
+                            '<td>' + data.listPendingOrder[x]["insertedDate"] + '</td></tr>'
+                        $('#PendingOrderbody').append(PendingBody);
+                    }
+                }
+
+                if (data.listApprovedOrder.length > 0) {
+                    $('#ApprovedOrder').empty();
+                    for (var m = 0; m < data.listApprovedOrder.length; m++) {
+                        var ApprovedBody = '<tr> <td>' + data.listApprovedOrder[m]["id"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["orderid"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["custMobile"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["custName"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["totalAmount"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["totalQty"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["Address"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["Remark"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["insertedDate"] + '</td>' +
+                            '<td>' + data.listApprovedOrder[m]["ApprovalRemark"] + '</td></tr>'
+
+                        $('#ApprovedOrder').append(ApprovedBody);
+                    }
+                }
+
+                if (data.listNotApprovedOrder.length > 0) {
+                    $('#NotApprovedOrder').empty();
+                    for (var n = 0; n < data.listNotApprovedOrder.length; n++) {
+                        var NotApprovedBody = '<tr><td>' + data.listNotApprovedOrder[n]["id"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["orderid"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["custMobile"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["custName"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["totalAmount"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["totalQty"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["Address"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["Remark"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["insertedDate"] + '</td>' +
+                            '<td>' + data.listNotApprovedOrder[n]["ApprovalRemark"] + '</td></tr>'
+                        $('#NotApprovedOrder').append(NotApprovedBody);
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+<div class="row">
+    <div class="col-lg-9">
+        <h2 style="text-align:left">&nbsp; Hello @Session["user_name"] &#128522; </h2>
+    </div>
+    <div class="col-lg-3">
+        @*<select id="ddStateTotalSale" class="panel-title ShapeFields" onchange="bind_Pie()"></select>*@
+        <strong>Select State : </strong>
+        <select id="ddStateTotalSale" class="panel-title ShapeFields" style="height:30px;width:200px;margin-top:22px" onchange="bind_Pie()">
+            <option value="0">All</option>
+        </select>
+    </div>
+</div>
+<br />
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+
+<div class="col-lg-12">
+    <br />
+    <div class="col-lg-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading"><h4><a data-toggle="collapse" href="#PandingOrder" role="button" aria-expanded="false" aria-controls="PandingOrder" style="color:white">Pending Order </a></h4></div>
+            <div class="panel-body">
+                <div class="collapse table-responsive" id="PandingOrder">
+                    <table id="tbl_PandingOrder" class="table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading"><h4><a data-toggle="collapse" href="#DeliveryOrder" role="button" aria-expanded="false" aria-controls="DeliveryOrder" style="color:white">Delivery Order Of @DateTime.Now.ToString("MMMMMMMMM") </a></h4></div>
+            <div class="panel-body">
+                <div class="collapse table-responsive" id="DeliveryOrder">
+                    <table id="tbl_DeliveryOrder" class="table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-lg-12">
+    <div class="col-lg-3">
+        <div class="panel panel-danger ">
+            <div class="panel-heading">
+                @*<h4>🗓️ Month Order<a style="margin-left: 135px;cursor: pointer" onclick="clearMonth()">Clear</a></h4>*@
+                <h4>🗓️ Month Order <a id="monthlyOrder" class="col-lg-offset-3" onclick="fetchMonthlyOrderCategory()" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">0</a></h4>
+            </div>
+            <div class="panel-body">
+                <div class="collapse table-responsive " id="collapseExample">
+                    <table id="tblMonthlyOrder" class="table"></table>
+                    <span id="ErrorNoDataMonthlyOrder"></span>
+                </div>
+                <!--<h4>-->
+                @*<span id="monthlyOrder">Total Order : 0</span>*@
+                <!--<a id="monthlyOrder" onclick="fetchMonthlyOrderCategory()" style="cursor:pointer;">Total Order : 0</a>
+                 </h4>
+                <table id="tblMonthlyOrder" class="table"></table>-->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                @*<h4>🧮 Today Order<a style="margin-left: 135px;cursor: pointer" onclick="clearToday()">Clear</a></h4>*@
+                <h4>🧮 Today Order <a id="dailyOrder" class="col-lg-offset-4" onclick="fetchDailyOrderCategory()" data-toggle="collapse" href="#collapseExamples" role="button" aria-expanded="false" aria-controls="collapseExample">0</a></h4>
+            </div>
+            <div class="panel-body">
+                <div class="collapse table-responsive " id="collapseExamples">
+                    <table id="tblDailyOrder" class="table"></table>
+                    <span id="ErrorNoDataDailyOrder"></span>
+                </div>
+
+                <!--<h4>-->
+                @*<span id="dailyOrder"> Total Order : 0</span>*@
+                <!--<a onclick="fetchDailyOrderCategory()" id="dailyOrder" style="cursor:pointer;">Total Order : 0</a>
+                </h4>
+                <table id="tblDailyOrder" class="table"></table>-->
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-6">
+                            <a data-toggle="collapse" href="#collapseSale" role="button" aria-expanded="false" aria-controls="collapseExample"><h4>🗓️ Total Sale</h4></a>
+                        </div>
+                        <div class="col-lg-6">
+                            @*<select style="margin-top:10px;margin-right:10px;width:100%" id="ddStateTotalSale" class="panel-title ShapeFields" onchange="bind_Pie()">
+                                </select>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                @*<h4>
+                        <span id="dailyOrder">0</span>
+                    </h4>*@
+                <div class="collapse table-responsive " id="collapseSale">
+                    <div id="chartContainer" class="table" style="width: 100%;"></div>@*height: 370px;*@
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="panel panel-info">
+            <div class="panel-heading"><a data-toggle="collapse" href="#collapseOrdersStatus" role="button" aria-expanded="false" aria-controls="collapseExample"><h4>🧮 Orders Status </h4></a></div>
+            <div class="panel-body">
+                @*<h4><span id="dailyOrder">0</span></h4>*@
+                <div class="collapse table-responsive " id="collapseOrdersStatus">
+                    <div id="charts" class="table" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="col-lg-offset-1 col-lg-10" id="DisplayMonthlyItem">
+    <div class="panel panel-danger ">
+        <div class="panel-heading">
+            <h4 style='text-align:center' id="DisplayCategoryName"></h4>
+        </div>
+        <div class="panel-body table-responsive Boxdesign">
+            <table id="tblMonthlyOrders" class="table"></table>
+        </div>
+
+    </div>
+</div>
+
+
+@*<div class="col-lg-12">
+        <br />
+        <div class="col-lg-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading"><h4>Top 5 Performance Of the Month</h4></div>
+                <div class="panel-body table-responsive">
+                    <table id="tbl_monthOrder" class="table"></table>
+                </div>
+
+                <div style="text-align: right;cursor:pointer;"> <a onclick="monthExel()">Download Excel</a></div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading"><h4>Top 5 Performance Of Today</h4></div>
+                <div class="panel-body table-responsive">
+                    <table id="tbl_todayOrder" class="table"></table>
+                </div>
+                <div style="text-align:right;cursor:pointer;"> <a onclick="TodayExel()">Download Excel</a></div>
+            </div>
+        </div>
+    </div>*@
+
+<div class="col-lg-12">
+    <br />
+    <div class="col-lg-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading"><a data-toggle="collapse" href="#TopPerformanceOftheMonth" role="button" aria-expanded="false" aria-controls="TopPerformanceOftheMonth" style="color:white"><h4>Top 5 Performance Of the Month</h4></a></div>
+            <div class="panel-body table-responsive collapse" id="TopPerformanceOftheMonth">
+                <table id="tbl_monthOrder" class="table"></table>
+            </div>
+            @{
+                if (Convert.ToString(Session["Role"]) != "3")
+                {
+                    <div style="text-align: right;cursor:pointer;"> <a onclick="monthExel()">Download Excel</a></div>
+                }
+            }
+
+
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading"><a data-toggle="collapse" href="#TopPerformanceOftheToday" role="button" aria-expanded="false" aria-controls="TopPerformanceOftheToday" style="color:white"><h4>Top 5 Performance Of Today</h4> </a></div>
+            <div class="panel-body table-responsive collapse" id="TopPerformanceOftheToday">
+                <table id="tbl_todayOrder" class="table"></table>
+            </div>
+            @{
+                if (Convert.ToString(Session["Role"]) != "3")
+                {
+                    <div style="text-align:right;cursor:pointer;"> <a onclick="TodayExel()">Download Excel</a></div>
+                }
+            }
+
+        </div>
+    </div>
+</div>
+
+
+
+<div class="col-lg-12">
+    <div class="col-lg-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading"><a data-toggle="collapse" href="#Top20CancelOrderPanel" role="button" aria-expanded="false" aria-controls="Top20CancelOrderPanel" style="color:white; text-align: center;"><h4>Top 20 Cancel Orders</h4></a></div>
+
+            <div class="panel-body table-responsive collapse" id="Top20CancelOrderPanel">
+                <table id="top20CancelOrder" class="table"></table>
+            </div>
+
+            @*<div style="text-align: right;cursor:pointer;"> <a onclick="monthExel()">Download Excel</a></div>*@
+        </div>
+    </div>
+</div>
+
+@{
+    if (Convert.ToString(Session["Role"]) == "3")
+    {
+        <div class="col-lg-12">
+            <div class="panel panel-primary">
+                @*<div class="panel-heading"><a data-toggle="collapse" role="button" aria-expanded="false" href="#ApprovalOrderPanel" aria-controls="DuplicateOrderPanel" style="color:white; text-align: center;"><h4>Orders For Approval</h4></a></div>*@
+                <div onclick="LoadApproval()" class="panel-heading"><a data-toggle="collapse" href="#ApprovalOrderPanel" role="button" aria-expanded="false" aria-controls="DuplicateOrderPanel" style="color:white; text-align: center;"><h4>Orders For Approval</h4></a></div>
+
+                @*<div class="panel-body table-responsive collapse" id="DuplicateOrderPanel">*@
+                <div class="panel-body table-responsive collapse out" id="ApprovalOrderPanel" aria-expanded="false" style="">
+                    <div class="p-3 mb-2 bg-info text-white panel-heading">
+
+                        <!-- Nav pills -->
+                        <ul class="nav nav-pills" role="tablist" id="AprovelPanel">
+                            <li class="nav-item">
+                                <a class="nav-link active" style="border-radius: 8px;" data-toggle="pill" href="#PendingOrder"> <h4>Pending Approval Order</h4></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" style="border-radius: 8px;" data-toggle="pill" href="#Approved"><h4>Approved Order</h4></a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" style="border-radius: 8px;" data-toggle="pill" href="#NotApproved"><h4>NotApproved Order</h4></a>
+                            </li>
+                            @*<li class="nav-item">
+                                    <a class="nav-link" style="border-radius: 8px;" data-toggle="pill" href="#State"><h4>Add State</h4></a>
+                                </li>*@
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content">
+                            <div id="PendingOrder" class="container tab-pane active col-lg-12">
+                                <br>
+                                <div class="row">
+                                    <div class="col-lg-offset-9">
+                                        <label>Filter</label>&nbsp;&nbsp;
+                                        <input id="AprovalSearch" type="text" placeholder="Search.." onkeyup="FilltersRecord(this,'PendingOrderbody')">
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-lg-12 table-responsive">
+                                        <table class="table" id="tblPendingOrder">
+                                            <thead>
+                                                <tr class="info" style="cursor:pointer;">
+                                                    <th>Id</th>
+                                                    <th>Order Id</th>
+                                                    <th>Mobile No.</th>
+                                                    <th>Customer Name</th>
+                                                    <th>Total Amt</th>
+                                                    <th>Total Qty</th>
+                                                    <th>Address</th>
+                                                    <th>Remark</th>
+                                                    <th>Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="PendingOrderbody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="Approved" class="container tab-pane fade col-lg-12">
+                                <br>
+                                <div class="row">
+                                    <div class="col-lg-offset-9">
+                                        <label>Filter</label>&nbsp;&nbsp;
+                                        <input id="AfterApprovedStatus" type="text" placeholder="Search.." onkeyup="FilltersRecord(this,'ApprovedOrder')">
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-lg-12 table-responsive">
+                                        <table class="table" id="tblApprovedOrder">
+                                            <thead>
+                                                <tr class="info" style="cursor:pointer;">
+                                                    <th>Id</th>
+                                                    <th>Order Id</th>
+                                                    <th>Mobile No.</th>
+                                                    <th>Customer Name</th>
+                                                    <th>Total Amt</th>
+                                                    <th>Total Qty</th>
+                                                    <th>Address</th>
+                                                    <th>Remark</th>
+                                                    <th>Date</th>
+                                                    <th>ApprovalRemark</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="ApprovedOrder">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="NotApproved" class="container tab-pane fade col-lg-12">
+                                <br>
+                                <div class="row">
+                                    <div class="col-lg-offset-9">
+                                        <label>Filter</label>&nbsp;&nbsp;
+                                        <input id="AfterApprovedStatus" type="text" placeholder="Search.." onkeyup="FilltersRecord(this,'NotApprovedOrder')">
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="row">
+                                    <div class="col-lg-12 table-responsive">
+                                        <table class="table" id="tblNotApproved">
+                                            <thead>
+                                                <tr class="info" style="cursor:pointer;">
+                                                    <th>Id</th>
+                                                    <th>Order Id</th>
+                                                    <th>Mobile No.</th>
+                                                    <th>Customer Name</th>
+                                                    <th>Total Amt</th>
+                                                    <th>Total Qty</th>
+                                                    <th>Address</th>
+                                                    <th>Remark</th>
+                                                    <th>Date</th>
+                                                    <th>ApprovalRemark</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="NotApprovedOrder">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    }
+}
+
+
+@*----------------------Ribbish Code---------------------------*@

@@ -1,0 +1,388 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Scripts/_Common.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        // loaddd();
+        $('#loading').fadeOut();
+        hideDestination();
+        $('#btnSubmit').show();
+        $('#btnUpdate').hide();
+        SearchingwithPagination('#MenuTableList');
+    });
+
+
+    function hideDestination() {
+        // console.log($('#dd_parentnode').val());
+        if ($('#dd_parentnode').val() === "0") {
+            $('#txt_nodeDestiantion').val('#');
+            $('#txt_nodeDestiantion').attr('readonly', true);
+        }
+        else {
+            //$('#txt_nodeDestiantion').val('');
+            $('#txt_nodeDestiantion').attr('readonly', false);
+        }
+
+    }
+
+    function Submit() {
+
+        //debugger;
+        //if ($('#dd_parentnode').val() === "") {
+        //    $('#msg').fadeIn();
+        //    //$('#msg').html('!!Select Parent Menu');
+        //    $('#msg').html('Select Parent Menu ...... !! ');
+        //    $('#msg').fadeOut(1000);
+        //}
+        if ($('#txt_nodename').val() === "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font style="color:red;width:100%;height:5%"> !! Enter Menu Name</font>');
+            $('#msg').fadeOut(10000);
+            return;
+
+        }
+        if ($('#txt_nodeDestiantion').val() === "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font style="color:red;width:100%;height:5%">!! Enter Menu Destiantion</font>');
+            $('#msg').fadeOut(1000);
+            return;
+
+        }
+        checkNodeName();
+        var menu = {};
+        menu.ParentID = $('#dd_parentnode').val();
+        menu.NodeName = $('#txt_nodename').val();
+        menu.destination = $('#txt_nodeDestiantion').val();
+
+
+        $.ajax({
+            url: "/UserPermission/Submit",
+            method: "Post",
+            data: { menu: menu },
+            success: function (data) {
+                if (data > 0) {
+                    $('#msg').fadeIn();
+                    $('#msg').html('<font style="color:green;width:100%;height:5%">Data Saved Successfully</font>');
+                    $('#msg').fadeOut(1000);
+                    //$('#dd_parentnode').empty();
+                    //$('#dd_parentnode').append('<option value="0">Master</option>')
+
+                    //for (var i = 0; i < data.lenght; i++) {
+                    //    var val = '<option' + data[i]["NodeID"] + '>' + data[i]["NodeName"] + '</option>'
+                    //    $('#dd_parentnode').append(val);
+
+                    //}
+
+                }
+            }
+        })
+    }
+
+    function Edit(i) {
+        $('#loading').show();
+        $('#txt_nodeDestiantion').attr('readonly', false);
+        $.ajax({
+            url: "/UserPermission/Edit/",
+            method: "Post",
+            data: { i, i },
+            success: function (menu) {
+                $('#loading').fadeOut();
+                $('#txt_nodename').val(menu.NodeName);
+                $('#txt_nodeDestiantion').val(menu.destination);
+                if (menu.menus.length > 0) {
+                    $('#dd_parentnode').empty();
+                    for (var eye = 0; eye < menu.menus.length; eye++) {
+                        var val;
+                        val = ' <option value="' + menu.menus[eye]["NodeID"] + '">' + menu.menus[eye]["NodeName"] + '(' + menu.menus[eye]["NodeID"] + ')</option>'
+                        $('#dd_parentnode').append(val);
+                        $('#btnSubmit').hide();
+                        $('#btnUpdate').show();
+                    }
+                }
+            }
+        })
+        hideDestination();
+    }
+
+    function Update() {
+        if ($('#txt_nodename').val() === "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font style="color:red;width:100%;height:5%"> !! Enter Menu Name</font>');
+            $('#msg').fadeOut(10000);
+            return;
+
+        }
+        if ($('#txt_nodeDestiantion').val() === "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font style="color:red;width:100%;height:5%">!! Enter Menu Destiantion</font>');
+            $('#msg').fadeOut(1000);
+            return;
+
+        }
+
+        var menu = {};
+        menu.ParentID = $('#dd_parentnode').val();
+        menu.NodeName = $('#txt_nodename').val();
+        menu.destination = $('#txt_nodeDestiantion').val();
+
+        
+        $.ajax({
+            url: "/UserPermission/Update",
+            method: "Post",
+            data: { menu: menu },
+            success: function (data) {
+                if (data > 0) {
+                    $('#msg').fadeIn();
+                    $('#msg').html('<font style="color:green;width:100%;height:5%">Data Update Successfully</font>');
+                    $('#msg').fadeOut(2000);
+                    location.reload();
+                }
+            }
+        })
+    }
+
+    function Deactivate(i) {
+        $.ajax({
+            url: "/UserPermission/Delete/",
+            method: "Post",
+            data: { i, i },
+            success: function (Result) {
+                console.log(Result);
+                if (Result > 0) {
+                    alert("Mode Changed Successfully...");
+                    location.reload();
+                }
+
+            }
+        })
+    }
+
+    function checkNodeName() {
+        var nodeName = $('#txt_nodename').val();
+        $.ajax({
+            url: "/UserPermission/checkNodeName",
+            method: "Post",
+            data: { nodeName: nodeName },
+            success: function (data) {
+                if (data == 'true') {
+                    $('#txt_nodename').val('');
+                    $('#msg').fadeIn();
+                    $('#msg').html('<font style="color:red;width:100%;height:5%">!! NodeName Already Exists.....</font>')
+                    $('#msg').fadeOut(5000);
+                    return;
+                }
+
+            }
+        })
+
+    }
+
+
+
+</script>
+
+@*
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-title">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="table-responsive">
+                            <div>
+                                <h3><span id="msg" style="color:red;width:100%;height:5%"></span></h3>
+                            </div>
+
+                            <table class="table">
+                                <tr>
+                                    <td style="width:10px"></td>
+                                    <td>
+                                        <select id="dd_parentnode" class="form-control ShapeFields" onchange="hideDestination()">
+                                            <option value="0">Make Master(0) </option>
+                                            @{
+                                                foreach (var n in ViewBag.ddMenuForDD)
+                                                {
+                                                    <option value="@n.NodeID">@n.NodeName (@n.NodeID)</option>
+                                                }
+                                            }
+                                        </select>
+                                    </td>
+                                    <td style="width:10px"></td>
+                                    <td> <input id="txt_nodename" type="text" placeholder="Menu Name" class="form-control ShapeFields" onchange="checkNodeName()" /> </td>
+                                    <td style="width:10px"></td>
+                                    <td> <input id="txt_nodeDestiantion" type="text" placeholder="Destination Name" class="form-control ShapeFields" /> </td>
+                                    <td style="width:10px"></td>
+                                    <td>
+                                        @{if (Convert.ToString(Session["Insert"]) == "true")
+                                            {
+                                                //<input id="btnSubmit" value="Submit" type="submit" class="form-control btn btn-m btn-info" onclick="Submit()" />
+                                                <a id="btnSubmit" class="btn btn-m btn-info ButtonShape" onclick="Submit()">
+                                                    <i class="fa fa-save"></i>  Submit
+                                                </a>
+                                            }
+                                        }
+
+
+                                        @{if (Convert.ToString(Session["Edit"]) == "true")
+                                            {
+
+
+                                                //<input id="btnUpdate" value="Update" type="submit" class="form-control btn btn-m btn-info" onclick="Update()" />
+                                                <a id="btnUpdate" class="btn btn-m btn-info ButtonShape" onclick="Update()">
+                                                    <i class="fa fa-edit"></i>  Update
+                                                </a>
+                                            } }
+                                        //<input type="submit" value="Clear" onclick="location.reload();" class="form-control btn btn-m btn-info"/>
+                                        <a class="btn btn-m btn-info ButtonShape" onclick="location.reload();">
+                                            <i class="fa fa-refresh"></i> Clear
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+*@
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+<h3>Menu Detail</h3>
+<h3><span id="msg"></span></h3>
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group">
+
+                        <div class="col-lg-3">
+                            <select id="dd_parentnode" class="form-control ShapeFields" onchange="hideDestination()">
+                                <option value="0">Make Master(0) </option>
+                                @{
+                                    foreach (var n in ViewBag.ddMenuForDD)
+                                    {
+                                        <option value="@n.NodeID">@n.NodeName (@n.NodeID)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <input id="txt_nodename" type="text" placeholder="Menu Name" class="form-control ShapeFields" onchange="checkNodeName()" />
+                        </div>
+
+                        <div class="col-lg-3">
+                            <input id="txt_nodeDestiantion" type="text" placeholder="Destination Name" class="form-control ShapeFields" />
+                        </div>
+
+                        <div class="col-lg-3">
+                            @{if (Convert.ToString(Session["Insert"]) == "true")
+                                {
+                                    @*<input id="btnSubmit" value="Submit" type="submit" class="form-control btn btn-m btn-info" onclick="Submit()" />*@
+                                    <a id="btnSubmit" class="btn btn-m btn-info ButtonShape" onclick="Submit()">
+                                        <i class="fa fa-save"></i>  Submit
+                                    </a>
+                                }
+                            }
+
+                            @{if (Convert.ToString(Session["Edit"]) == "true")
+                                {
+
+
+                                    @*<input id="btnUpdate" value="Update" type="submit" class="form-control btn btn-m btn-info" onclick="Update()" />*@
+                                    <a id="btnUpdate" class="btn btn-m btn-info ButtonShape" onclick="Update()">
+                                        <i class="fa fa-edit"></i>  Update
+                                    </a>
+                                } }
+                            @*<input type="submit" value="Clear" onclick="location.reload();" class="form-control btn btn-m btn-info"/>*@
+                            <a class="btn btn-m btn-info ButtonShape" onclick="location.reload();">
+                                <i class="fa fa-refresh"></i> Clear
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="table-responsive">
+    @{if (Convert.ToString(Session["View"]) == "true")
+        {
+
+            <table id="MenuTableList" class="table">
+                <thead>
+                    <tr class="info" style="cursor:pointer;">
+                        <td><b>NodeId</b> </td>
+                        <td><b> Node Name</b></td>
+                        <td><b> Parent Name</b></td>
+                        <td><b> Destination</b></td>
+                        <td><b> Status</b></td>
+                        <td><b> Action</b></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        foreach (var n in ViewBag.menuTable)
+                        {
+                            <tr>
+                                <td>@n.NodeID</td>
+                                <td>@n.NodeName</td>
+                                <td>@n.parentName </td>
+                                <td>@n.destination </td>
+                                @{
+                                    if (@n.Status == "True")
+                                    {
+                                        <td><span style="color:green">Active</span></td>
+                                    }
+                                    else
+                                    {
+                                        <td><span style="color:red">Deactive</span></td>
+                                    }
+
+                                }
+                                @*<td>
+                                    @n.Status
+                                    </td>*@
+                                <td>
+                                    @{
+                                        if (Convert.ToString(Session["Edit"]) == "true")
+                                        {
+                                            @*<input type="submit" value="Edit" onclick="Edit(@n.NodeID)" class="btn btn-m btn-info" />*@
+                                            <a onclick="Edit(@n.NodeID)" title="Edit"><i class='fa fa-edit fa-2x'></i></a>
+
+                                        }
+                                    }
+                                    @{
+                                        if (Convert.ToString(Session["Delete"]) == "true")
+                                        {
+                                            @*<input type="submit" value="Active/Dactivate" onclick="Deactivate(@n.NodeID)" class="btn btn-m btn-info" />*@
+                                            <a onclick="Deactivate(@n.NodeID)" title="Active And Deactive"><i class='fa fa-ban fa-2x'></i></a>
+
+                                        }
+                                    }
+                                    @*<a href="/UserPermission/Edit/@n.NodeID" class="btn btn-m btn-info">Edit</a>*@
+                                    @*<a href="/UserPermission/Delete/@n.NodeID" class=" btn btn-m btn-info">Deactive</a>*@
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+    }
+</div>
+
+
+

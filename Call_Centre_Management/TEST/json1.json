@@ -1,0 +1,74 @@
+[
+  {
+    "id": 31,
+    "areaName": "Aps Dolce Beta",
+    "zone": "Noida",
+    "State": "Delhi/NCR",
+    "pincode": 201310,
+    "Active": "True"
+  },
+  {
+    "id": 32,
+    "areaName": "Arjangarh",
+    "zone": "South",
+    "State": "Delhi/NCR",
+    "pincode": 110047,
+    "Active": "True"
+  },
+  {
+    "id": 33,
+    "areaName": "Arjun Nagar",
+    "zone": "South",
+    "State": "Delhi/NCR",
+    "pincode": 110029,
+    "Active": "True"
+  },
+  {
+    "id": 34,
+    "areaName": "Aruna Nagar",
+    "zone": "North",
+    "State": "Delhi/NCR",
+    "pincode": 110054,
+    "Active": "True"
+  },
+  {
+    "id": 35,
+    "areaName": "Arvind Nagar",
+    "zone": "East",
+    "State": "Delhi/NCR",
+    "pincode": 110053,
+    "Active": "True"
+  },
+  {
+    "id": 36,
+    "areaName": "Arya Pura Indra Market",
+    "zone": "North",
+    "State": "Delhi/NCR",
+    "pincode": 110007,
+    "Active": "True"
+  },
+  {
+    "id": 37,
+    "areaName": "Asha Park",
+    "zone": "West",
+    "State": "Delhi/NCR",
+    "pincode": 110018,
+    "Active": "True"
+  },
+  {
+    "id": 38,
+    "areaName": "Ashok Nagar",
+    "zone": "East",
+    "State": "Delhi/NCR",
+    "pincode": 110018,
+    "Active": "True"
+  },
+  {
+    "id": 39,
+    "areaName": "Ashok Nagar",
+    "zone": "West",
+    "State": "Delhi/NCR",
+    "pincode": 110018,
+    "Active": "True"
+  }
+]

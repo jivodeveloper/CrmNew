@@ -1,0 +1,555 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Scripts/_Common.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+     $('#loading').fadeOut();
+
+        //Role Buttons and msg tag
+        $("#EditRole").hide();
+        $("#Submit").show();
+        $('#msg').show();
+
+        SearchingwithPagination('#RoleTableList');
+
+
+
+        //End
+
+        ////State Buttons and msg tag
+        //$("#EditState").hide();
+        //$("#StateSubmit").show();
+        //$("#msgState").show();
+        ////End
+
+        //$("#EditZone").hide();
+        //$("#SumitZone").show();
+        //$("#msgZone").show();
+
+    });
+    //Add Role Functionality
+    function RoleSubmit() {
+
+        $("#EditRole").hide();
+        $("#Submit").show();
+        var Values = {};
+        Values.RoleName = $('#AddRole').val();
+        if (Values.RoleName.length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Login/InsertRole",
+                method: "POSt",
+                data: { model: Values },
+                success: function (Result) {
+                    if (Result == "True") {
+                        alert("Record Sucessfully Saved.");
+                        location.reload();
+                        $('#AddRole').val('');
+                    }
+                    else {
+                        $('#msg').hide();
+                        alert("Record Is Already Exists Please Try Again.");
+                        $('#AddRole').val('');
+                    }
+                }
+            });
+        }
+        else {
+            $('#msg').html("<span style='color: red'>Please Enter Role Name.</span>");
+        }
+    }
+    function RoleUpdate(Id, RoleName) {
+        $('#loading').show(); 
+        $('#msg').hide();
+        $("#EditRole").show();
+        $("#Submit").hide();
+        $('#AddRole').val(RoleName);
+        $('#EditRoleId').val(Id);
+        $('#loading').fadeOut();
+        $("#EditRole").click(function () {
+            var EditValues = {};
+            EditValues.RoleName = $('#AddRole').val();
+            EditValues.Id = $('#EditRoleId').val();
+            if (EditValues.Id > 0 && EditValues.RoleName.length > 0) {
+                $.ajax({
+                    url: "/Login/EditRole",
+                    method: "Post",
+                    data: { model: EditValues },
+                    success: function (Result) {
+
+                        if (Result == "True") {
+                            alert("Record Sucessfully Updated.");
+                            location.reload();
+                            $('#AddRole').val('');
+                            $("#EditRole").hide();
+                            $("#Submit").show();
+                            $('#msg').hide();
+
+                        }
+                        else if (Result == "False") {
+                            $('#msg').hide();
+                            alert("Please Try Again");
+                        }
+                        //else if (Result == 1) {
+                        //    $('#msg').hide();
+                        //    alert("Role Is Activated");
+                        //}
+                        //else if (Result == 2) {
+                        //    $('#msg').hide();
+                        //    alert("Role Is DisActivated");
+                        //}
+                        else if (Result == 3) {
+                            location.reload();
+                        }
+
+                    }
+                });
+            }
+            else {
+                $('#msg').show();
+                $('#msg').html("<span style='color: red'>Please Enter Role Name.</span>");
+            }
+        });
+    }
+    function RoleActive_Deactive(Id) {
+        var ActiveValues = {};
+        ActiveValues.Id = Id;
+
+        if (ActiveValues.Id > 0) {
+            var alertmsg = confirm("Are you Sure You Want change Mode");
+            if (alertmsg == true) {
+                $.ajax({
+                    url: "/Login/EditRole",
+                    method: "Post",
+                    data: { model: ActiveValues },
+                    success: function (Result) {
+                        if (Result == 1) {
+                            alert("Role Is Activated");
+                            location.reload();
+                        }
+                        else if (Result == 2) {
+                            alert("Role Is DisActivated");
+                            location.reload();
+                        }
+                        else if (Result == 3) {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+        else {
+            $('#msg').hide();
+            alert("Please Try Again");
+        }
+    }
+    //End
+
+    ////Add State Functionality
+    //function StateSubmit()
+    //{
+    //    var EditStateValues = {};
+    //    EditStateValues.StateName = $('#Txtstate').val();
+    //    if (EditStateValues.StateName.length > 0)
+    //    {
+    //        $.ajax({
+    //            url: "/Area/InsertState",
+    //            method: "Post",
+    //            data: { model: EditStateValues },
+    //            success: function (Result) {
+    //                if (Result == "True") {
+    //                    alert("Record Sucessfully Saved.");
+    //                    location.reload();
+    //                    $('#Txtstate').val('');
+    //                }
+    //                else {
+    //                    alert("Record Is Already Exists Please Try Again.");
+    //                    $('#Txtstate').val('');
+    //                    $('#msgState').hide();
+    //                }
+    //            }
+    //        });
+    //    }
+    //    else {
+    //        $('#msgState').html("<span style='color: red'>Please Enter State Name.</span>");
+    //    }
+    //};
+    //function StateUpdate(SId,Statename)
+    //{
+    //    $('#msgState').hide();
+    //    $("#EditState").show();
+    //    $("#SumitState").hide();
+    //    $('#Txtstate').val(Statename);
+    //    $('#EditStateId').val(SId);
+
+    //    $("#EditState").click(function () {
+    //        var EditStateValues = {};
+    //        EditStateValues.StateName = $('#Txtstate').val();
+    //        EditStateValues.Id = $('#EditStateId').val();
+    //        if (EditStateValues.Id > 0 && EditStateValues.StateName.length > 0)
+    //        {
+    //            $.ajax({
+    //                url: "/Area/UpdateState",
+    //                method: "Post",
+    //                data: { model: EditStateValues },
+    //                success: function (Result) {
+    //                    if (Result == true)
+    //                    {
+    //                        alert("Record Sucessfully Updated.");
+    //                        location.reload();
+    //                        $('#Txtstate').val('');
+    //                        $("#EditState").hide();
+    //                        $("#SumitState").show();
+    //                        $('#msgState').hide();
+    //                    }
+    //                    else if (Result == false) {
+    //                        $('#msgState').hide();
+    //                        alert("Please Try Again");
+    //                    }
+    //                    //else if (Result == 1) {
+    //                    //    $('#msgState').hide();
+    //                    //    alert("Role Is Activated");
+    //                    //}
+    //                    //else if (Result == 2) {
+    //                    //    $('#msgState').hide();
+    //                    //    alert("Role Is DisActivated");
+    //                    //}
+    //                    else if (Result == 3) {
+    //                        location.reload();
+    //                    }
+    //                }
+    //            });
+    //        }
+    //        else {
+    //            $('#msgState').show();
+    //            $('#msgState').html("<span style='color: red'>Please Enter State Name.</span>");
+    //        }
+
+    //    });
+    //}
+    //function StateActive_Deactive(Id) {
+    //    var StateActiveValues = {};
+    //    StateActiveValues.Id = Id;
+
+    //    if (StateActiveValues.Id > 0) {
+    //        var alertmsg = confirm("Are you Sure You Want change Mode");
+    //        if (alertmsg == true) {
+    //            $.ajax({
+    //                url: "/Area/UpdateState",
+    //                method: "Post",
+    //                data: { model: StateActiveValues },
+    //                success: function (Result) {
+    //                    if (Result == 1) {
+    //                        alert("State Is Activated");
+    //                        location.reload();
+    //                    }
+    //                    else if (Result == 2) {
+    //                        alert("State Is DisActivated");
+    //                        location.reload();
+    //                    }
+    //                    else if (Result == 3) {
+    //                        location.reload();
+    //                    }
+    //                }
+    //            });
+    //        }
+    //    }
+    //    else {
+    //        $('#msgState').hide();
+    //        alert("Please Try Again");
+    //    }
+    //}
+    ////End
+
+    ////Add Zone Functionality
+    //function ZoneSubmit()
+    //{
+    //    var ZoneValue = {};
+    //    ZoneValue.StateId = $("#ZoneSelect").val();
+    //    ZoneValue.ZoneName = $("#TxtZone").val();
+
+    //    if (ZoneValue.StateId == 0) { $('#msgZone').html("<span style='color: red'>Please Select State.</span>"); }
+    //    else if (ZoneValue.ZoneName.length == 0) { $('#msgZone').html("<span style='color: red'>Please Enter Zone Name.</span>");}
+    //    else if (ZoneValue.StateId > 0 && ZoneValue.ZoneName.length > 0) {
+    //        $.ajax
+    //            ({
+    //                url: "/Area/InsertZoneDetails",
+    //                method: "post",
+    //                data: { modal: ZoneValue },
+    //                success: function (Result) {
+    //                    if (Result == true)
+    //                    {
+    //                        alert("Record Sucessfully Saved");
+    //                        location.reload();
+    //                    }
+    //                    else
+    //                    {
+    //                        alert("oops Something Wrong Please Try Again");
+    //                    }
+    //                }
+    //            });
+    //    }
+    //}
+    //function ZoneUpdate(Id,StateId, ZoneName)
+    //{
+    //    $("#EditZone").show();
+    //    $("#SumitZone").hide();
+
+    //    $("#EditZoneId").val(Id);
+    //    $("#ZoneSelect").val(StateId);
+    //    $("#TxtZone").val(ZoneName);
+
+    //    $("#EditZone").click(function () {
+    //    var EditZone = {};
+    //    EditZone.Id = $("#EditZoneId").val() ;
+    //    EditZone.StateId = $("#ZoneSelect").val();
+    //    EditZone.ZoneName = $("#TxtZone").val();
+    //    if (EditZone.Id == 0) { alert("Oops Somthing Wrong Please Try Again"); }
+    //    else if (EditZone.StateId == 0) { $('#msgZone').html("<span style='color: red'>Please Select State.</span>");  }
+    //    else if (EditZone.ZoneName.length == 0) { $('#msgZone').html("<span style='color: red'>Please Enter Zone Name.</span>");  }
+    //    else if (EditZone.Id > 0 && EditZone.StateId > 0 && EditZone.ZoneName.length > 0) {
+
+    //            $.ajax({
+    //                url: "/Area/UpdateZone",
+    //                method: "post",
+    //                data: { model: EditZone },
+    //                success: function (Result) {
+    //                    if (Result == true) {
+    //                        alert("Record Sucessfully Updated");
+    //                        location.reload();
+    //                    }
+    //                    else {
+    //                        alert("oops Something Wrong Please Try Again");
+    //                        $('#msgZone').val('');
+    //                    }
+    //                }
+    //            });
+
+    //        }
+    //    });
+    //}
+    //function ZoneActive_Deactive(Id) {
+    //    var ZoneActiveValues = {};
+    //    ZoneActiveValues.Id = Id;
+
+    //    if (ZoneActiveValues.Id > 0) {
+    //        var alertmsg = confirm("Are you Sure You Want change Mode");
+    //        if (alertmsg == true) {
+    //            $.ajax({
+    //                url: "/Area/UpdateZone",
+    //                method: "Post",
+    //                data: { model: ZoneActiveValues },
+    //                success: function (Result) {
+    //                    if (Result == 1) {
+    //                        alert("Zone Is Activated");
+    //                        location.reload();
+    //                    }
+    //                    else if (Result == 2) {
+    //                        alert("Zone Is DeActivated");
+    //                        location.reload();
+    //                    }
+    //                    else if (Result == 3) {
+    //                        location.reload();
+    //                    }
+    //                }
+    //            });
+    //        }
+    //    }
+    //    else {
+    //        $('#msgZone').hide();
+    //        alert("Please Try Again");
+    //    }
+    //}
+    ////End
+
+
+</script>
+
+<h3>Role Master</h3>
+
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+<div class="panel panel-info panelmargin">
+    <input type="hidden" id="EditRoleId" />
+    <div class="panel-heading">
+        <h3 class="panel-title">Add Role</h3>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="form-horizontal">
+                <div class="col-lg-6">
+                    <input type="text" id="AddRole" autofocus="autofocus" class="form-control ShapeFields" placeholder="Add Role" />
+                    <span id="msg"></span>
+                </div>
+                <div class="col-lg-6">
+                    @{
+                        if (Session["Insert"].ToString() == "true")
+                        {
+                            @*<input id="Submit" type="button" value="Submit" class="btn btn-info" onclick="RoleSubmit()" />*@
+                            <a id="Submit" class="btn btn-info ButtonShape" onclick="RoleSubmit()">
+                                <i class="fa fa-save"></i>  Submit
+                            </a>
+                        }
+                    }
+
+                    @{
+                        if (Convert.ToString(Session["Edit"]) == "true")
+                        {
+
+                            <a id="EditRole" class="btn btn-info ButtonShape">
+                                <i class="fa fa-edit"></i>  Update
+                            </a>
+                            @*<input id="EditRole" type="button" value="Update" class="btn btn-info" />*@
+                        }
+                    }
+
+
+                    @{
+                        if (Convert.ToString(Session["View"]) == "true")
+                        {
+                            @*<input type="submit" value="Clear" onclick="location.reload();" class="form-control btn btn-m btn-info"/>*@
+                            <a class="btn btn-m btn-info ButtonShape" onclick="location.reload();">
+                                <i class="fa fa-refresh"></i> Clear
+                            </a>
+                        }
+                    }
+                </div>
+                <br /><br /><br />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@*<div class="form-horizontal ">
+    <div class="panel panel-info" style="float:left">
+        <input type="hidden" id="EditRoleId" />
+        <div class="panel-heading">
+            <h3 class="panel-title">Add Role</h3>
+        </div>
+        <div class="panel-body">
+            <table class="table">
+                <tr>
+
+                    <td>
+                        <input type="text" id="AddRole" autofocus="autofocus" class="form-control" style="border-radius: 20px;font-size: 14px;" placeholder="Add Role" />
+                        <span id="msg"></span>
+                    </td>
+                    <td>
+                        @{
+                            if (Session["Insert"].ToString() == "true")
+                            {
+                                //<input id="Submit" type="button" value="Submit" class="btn btn-info" onclick="RoleSubmit()" />
+                                <a id="Submit" class="btn btn-info" style="border-radius: 20px;font-size: 14px;" onclick="RoleSubmit()">
+                                    <i class="fa fa-save"></i>  Submit
+                                </a>
+                            }
+                        }
+
+                        @{if (Convert.ToString(Session["Edit"]) == "true")
+                            {
+
+                                <a id="EditRole" class="btn btn-info" style="border-radius: 20px;font-size: 14px;">
+                                    <i class="fa fa-edit"></i>  Update
+                                </a>
+                               //<input id="EditRole" type="button" value="Update" class="btn btn-info" />
+                            } }
+                    </td>
+
+                    @{
+                        if (Convert.ToString(Session["View"]) == "true")
+                        {
+
+                            <td>
+
+                                //<input type="submit" value="Clear" onclick="location.reload();" class="form-control btn btn-m btn-info"/>
+                                <a class="btn btn-m btn-info" style="border-radius: 20px;font-size: 14px;" onclick="location.reload();">
+                                    <i class="fa fa-refresh"></i> Clear
+                                </a>
+                            </td>
+                        } }
+
+                </tr>
+            </table>
+
+        </div>
+    </div></div>*@
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="table-responsive">
+            @{
+                if (Session["View"].ToString() == "true")
+                {
+                    <table id="RoleTableList" class="table">
+                        <thead>
+                            <tr class="info" style="cursor:pointer;">
+                                <th>Role Name</th>
+                                <th>Active</th>
+                                <th>Created Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var GetData in ViewBag.GetRoleList)
+                            {
+
+                                <tr>
+                                    <td>@GetData.Id . @GetData.RoleName  </td>
+
+                                    <td>
+                                        @{
+                                            if (@GetData.active == "Active")
+                                            {
+                                                <span style="color:green">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color:red">Deactive</span>
+                                            }
+
+                                        }
+
+                                    </td>
+
+                                    <td>@GetData.InsertedDate </td>
+
+                                    <td>
+                                        @{
+                                            if (Session["Edit"].ToString() == "true")
+                                            {
+                                                //<input type='button' value='Edit' class='btn btn-sm btn-info' onclick="RoleUpdate('@GetData.Id','@GetData.RoleName')" />
+                                                <a onclick="RoleUpdate('@GetData.Id','@GetData.RoleName')" title="Edit"><i class='fa fa-edit fa-2x'></i></a>
+                                            }
+                                        }
+                                        @{
+                                            if (Session["Delete"].ToString() == "true")
+                                            {
+                                                //<input type='button' value='Active/Deactive' id="RoleActive/Deactive" class='btn btn-sm btn-info' onclick="RoleActive_Deactive('@GetData.Id')" />
+                                                <a onclick="RoleActive_Deactive('@GetData.Id')" id="RoleActive/Deactive" title="Active And Deactive"><i class='fa fa-ban fa-2x'></i></a>
+                                            }
+                                        }
+
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+
+
+                    </table>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+
+

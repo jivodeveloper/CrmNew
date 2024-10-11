@@ -1,0 +1,46 @@
+﻿.ShapeFields {
+    border-radius: 8px;
+}
+
+.ButtonShape {
+    border-radius: 8px;
+}
+
+.panelmargin {
+    float: left;
+}
+
+
+.Boxdesign {
+    height: 240px;
+}
+
+.circular {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+}
+
+.circular img {
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        -webkit-transform: translate(-50%, -50%);
+        -moz-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+    }
+
+.whitespace {
+    white-space: normal;
+    width: 100px;
+}
+
+
+ 

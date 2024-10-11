@@ -1,0 +1,265 @@
+﻿
+@{
+    ViewBag.Title = "User Permission";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3>User Permission</h3>
+
+<script>
+
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        loadEmpDD();
+    });
+
+    function loadEmpDD() {
+        $.ajax({
+            url: "/UserPermission/LoadDD",
+            method: "Post",
+            success: function (Emp) {
+                if (Emp.length > 0) {
+                    $('#ddemp').empty();
+                    for (var i = 0; i < Emp.length; i++) {
+                        var val = '<option value=' + Emp[i]["Value"] + '>' + Emp[i]["Text"] + '</option>'
+                        $("#ddemp").append(val);
+
+                    }
+                }
+            }
+        })
+    }
+
+
+    function fildata() {
+        
+        var ddVal = $('#ddemp').val();
+        var active;
+        if (ddVal === "0") {
+            $('#tblPermission').empty();
+            var tablebody = '<thead><tr class="info" style="cursor:pointer;">' +
+                '<th>Page Id</th>' +
+                '<th>Page Name</th>' +
+                '<th> Destination</th>' +
+                '<th>Page Permission</th>' +
+                '<th>View</th>' +
+                '<th>Insert</th>' +
+                '<th>Edit</th>' +
+                '<th>Delete</th>' +
+                '</thead></tr>'
+            $('#tblPermission').append(tablebody);
+            return;
+        }
+        $('#loading').show();
+        $.ajax({
+            url: "/UserPermission/getMenu",
+            data: { id: ddVal },
+            method: "Post",
+            success: function (permission_list) {
+                $('#loading').fadeOut();
+                if (permission_list.length > 0) {
+                    $('#tblPermission').empty();
+
+                    var tablebody = '<thead><tr tr class="info" style="cursor:pointer;">' +
+                        '<th>Page Id</th>' +
+                        '<th>Page Name</th>' +
+                        '<th> Destination</th>' +
+                        '<th><input  type="checkbox" onchange="all_checkbox(this)" class="active"  />Page Permission</th>' +
+                        '<th><input  type="checkbox" onchange="all_checkbox(this)" class="view" />View</th>' +
+                        '<th><input type="checkbox" onchange="all_checkbox(this)" class="insert" />Insert</th>' +
+                        '<th><input type="checkbox" onchange="all_checkbox(this)" class="edit" />Edit</th>' +
+                        '<th><input type="checkbox" onchange="all_checkbox(this)" class="delete" />Delete</th>' +
+                        '</thead></tr>'
+                    $('#tblPermission').append(tablebody);
+                    for (var i = 0; i < permission_list.length; i++) {
+                        var val = '<tbody><tr>' +
+                            //'<td>' + permission_list[i]["nodeName"] + '(' + permission_list[i]["nodeId"]+')</td>' +
+
+                            '<td>  <label id="lblnodename' + i + '">' + permission_list[i]["nodeId"] + '</label> </td>' +
+                            '<td>  <label id="lblnodename' + i + '">' + permission_list[i]["nodeName"] + '</label> </td>' +
+                            '<td> <label id="lbldestination' + i + '" > ' + permission_list[i]["destination"] + '</label> </td>' +
+                            '<td>' + getCheckBoxactive(permission_list[i]["active"], i) + '</td>' +
+                            '<td>' + getCheckBoxview(permission_list[i]["view"], i) + '</td>' +
+                            '<td>' + getCheckBoxinsert(permission_list[i]["insert"], i) + '</td>' +
+                            '<td>' + getCheckBoxedit(permission_list[i]["edit"], i) + '</td>' +
+                            '<td>' + getCheckBoxdelete(permission_list[i]["delete"], i) + '</td>' +
+                            '</tbody></tr>'
+                        $('#tblPermission').append(val);
+                    }
+                }
+            }
+        })
+    }
+
+    function getCheckBoxactive(val, i) {
+
+        if (val == true) {
+            return '<input id="chckbocactive' + i + '" type="checkbox" checked="checked" class="active"   />';
+        } else {
+            return '<input id="chckbocactive' + i + '" type="checkbox" class="active" />';
+        }
+    }
+
+    function getCheckBoxinsert(val, i) {
+
+        if (val == true) {
+            return '<input id="chckboxinsert' + i + '" type="checkbox" checked="checked" class="insert" />';
+        } else {
+            return '<input id="chckboxinsert' + i + '" type="checkbox" class="insert"  />';
+        }
+    }
+
+    function getCheckBoxedit(val, i) {
+
+        if (val == true) {
+            return '<input id="chckboxedit' + i + '" type="checkbox" checked="checked" class="edit"  />';
+        } else {
+            return '<input id="chckboxedit' + i + '" type="checkbox" class="edit" />';
+        }
+    }
+
+    function getCheckBoxdelete(val, i) {
+
+        if (val == true) {
+            return '<input id="chckboxdelete' + i + '" type="checkbox" checked="checked" class="delete"  />';
+        } else {
+            return '<input id="chckboxdelete' + i + '" type="checkbox" class="delete" />';
+        }
+    }
+
+    function getCheckBoxview(val, i) {
+
+        if (val == true) {
+            return '<input id="chckboxview' + i + '" type="checkbox" checked="checked"  class="view"   />';
+        } else {
+            return '<input id="chckboxview' + i + '" type="checkbox"  class="view"  />';
+        }
+    }
+
+    function insertdata() {
+
+        if ($('#ddemp').val() === "0") {
+            return alert("!! Select Employee");
+        }
+
+        var permissionlist = new Array();
+        var row = $("#tblPermission").find("tr").length;
+        for (var i = 1; i < row; i++) {
+            permissionlist.push({
+                nodeid: $("#tblPermission").find("tr").eq(i).find('td:eq(0)').text(),
+                nodename: $("#tblPermission").find("tr").eq(i).find('td:eq(1)').text(),
+                nodedestination: $("#tblPermission").find("tr").eq(i).find('td:eq(2)').text(),
+                active: $("#tblPermission").find("tr").eq(i).find('td:eq(3) input').is(':checked'),
+                view: $("#tblPermission").find("tr").eq(i).find('td:eq(4) input').is(':checked'),
+                insert: $("#tblPermission").find("tr").eq(i).find('td:eq(5) input').is(':checked'),
+                edit: $("#tblPermission").find("tr").eq(i).find('td:eq(6) input').is(':checked'),
+                delete: $("#tblPermission").find("tr").eq(i).find('td:eq(7) input').is(':checked')
+            })
+        }
+        var empid = $('#ddemp').val();
+
+        $.ajax({
+            url: "/UserPermission/InsertPermission",
+            data: { permissions: permissionlist, empid: empid },
+            method: "Post",
+            success: function (Result) {
+                if (Result > 0) {
+                    return alert("Data Saved Successfully... ");
+                }
+                else {
+                    return alert("Oops !!! Something Gone Wrong... ");
+                }
+            }
+        })
+    }
+
+
+    function selectallcehckbox(checkbox) {
+
+        $("." + checkbox + "").attr('checked', this.checked);
+    }
+
+
+
+    function all_checkbox(obj) {
+
+        var checkboxes = document.querySelectorAll('input[class="' + obj.className + '"]');
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i] != obj)
+                checkboxes[i].checked = obj.checked;
+        }
+        var checkBoxValue = $(obj).is(':checked');
+    }
+
+</script>
+
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+<div>
+    <div class="panel panel-info" id="maindiv">
+        <div class="panel-heading">
+            <div class="panel-title">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <div class="col-lg-10">
+                                <select id="ddemp" class="btn btn-light ShapeFields"  onchange="fildata()">
+                                </select>
+                            </div>
+                            @{if (Convert.ToString(Session["Insert"]) == "true")
+                                {
+                                    <div class="col-lg-2">
+                                        @*<input id="btnSubmit" type="submit" class="btn btn-info" onclick="insertdata()" />*@
+                                        @*<a id="btnSubmit" class="btn btn-primary ButtonShape" onclick="insertdata()">
+                                            <i class="fa fa-save"></i>  Submit
+                                        </a>*@
+                                        <button id="btnSubmit" class="btn btn-primary ButtonShape" onclick="insertdata()"> <i class="fa fa-save"></i>  Submit</button>
+
+                                        @*&nbsp;&nbsp;<input type="submit" value="Clear" onclick="location.reload();" class="btn btn-info" />*@
+                                        @*<a class="btn btn-primary ButtonShape"  onclick="location.reload();">
+                                            <i class="fa fa-refresh"></i> Clear
+                                        </a>*@
+                                        <button  class="btn btn-primary ButtonShape" onclick="location.reload()"> <i class="fa fa-refresh"></i> Clear</button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*<div class="row">
+            <div class="col-md-2">
+                <select id="ddemp" class="form-control" onchange="fildata()">
+                </select>
+            </div>
+            <div class="col-md-offset-6 col-md-2">
+                <input id="btnSubmit" type="submit" class="form-control" onclick="insertdata()" />
+            </div>
+        </div>*@
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="table-responsive">
+                <table id="tblPermission" class="table">
+                    <thead>
+                        <tr class="info" style="cursor:pointer;">
+                            <th>Page Name</th>
+                            <th>Destination</th>
+                            <th>Page Permission</th>
+                            <th>View</th>
+                            <th>Insert</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

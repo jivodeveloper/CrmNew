@@ -1,0 +1,58 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\User75\\Downloads\\CRMProd\\CRMProd\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D403FED5-B3A8-4CE8-A156-EE1637E34DF1}|Call_Centre_Management\\Call_Centre_Management.csproj|c:\\users\\user75\\downloads\\crmprod\\crmprod\\call_centre_management\\controllers\\deliverypanelcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D403FED5-B3A8-4CE8-A156-EE1637E34DF1}|Call_Centre_Management\\Call_Centre_Management.csproj|solutionrelative:call_centre_management\\controllers\\deliverypanelcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D403FED5-B3A8-4CE8-A156-EE1637E34DF1}|Call_Centre_Management\\Call_Centre_Management.csproj|c:\\users\\user75\\downloads\\crmprod\\crmprod\\call_centre_management\\classes\\deliverypanelclass.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D403FED5-B3A8-4CE8-A156-EE1637E34DF1}|Call_Centre_Management\\Call_Centre_Management.csproj|solutionrelative:call_centre_management\\classes\\deliverypanelclass.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DeliveryPanelController.cs",
+              "DocumentMoniker": "C:\\Users\\User75\\Downloads\\CRMProd\\CRMProd\\Call_Centre_Management\\Controllers\\DeliveryPanelController.cs",
+              "RelativeDocumentMoniker": "Call_Centre_Management\\Controllers\\DeliveryPanelController.cs",
+              "ToolTip": "C:\\Users\\User75\\Downloads\\CRMProd\\CRMProd\\Call_Centre_Management\\Controllers\\DeliveryPanelController.cs",
+              "RelativeToolTip": "Call_Centre_Management\\Controllers\\DeliveryPanelController.cs",
+              "ViewState": "AgIAAOIAAAAAAAAAAAAewO8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-11T05:42:03.385Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "DeliveryPanelClass.cs",
+              "DocumentMoniker": "C:\\Users\\User75\\Downloads\\CRMProd\\CRMProd\\Call_Centre_Management\\Classes\\DeliveryPanelClass.cs",
+              "RelativeDocumentMoniker": "Call_Centre_Management\\Classes\\DeliveryPanelClass.cs",
+              "ToolTip": "C:\\Users\\User75\\Downloads\\CRMProd\\CRMProd\\Call_Centre_Management\\Classes\\DeliveryPanelClass.cs*",
+              "RelativeToolTip": "Call_Centre_Management\\Classes\\DeliveryPanelClass.cs*",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAQwCIAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-14T09:37:53.923Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

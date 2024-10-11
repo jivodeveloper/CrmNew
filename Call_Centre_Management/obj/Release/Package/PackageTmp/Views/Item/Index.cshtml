@@ -1,0 +1,188 @@
+﻿
+@{
+    ViewBag.Title = "Item Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Scripts/_Common.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        SearchingwithPagination('#EmployeeTableList');
+    });
+
+    function RoleSubmit() {
+        var Values = {};
+        Values.RoleName = $('#AddRole').val();
+        if (Values.RoleName.length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Login/InsertRole",
+                method: "POSt",
+                data: { model: Values },
+                success: function (Result) {
+                    if (Result == "True") {
+                        alert("Record Sucessfully Saved.");
+                        //$('#msg').html("<div class='alert alert-success alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Success!</strong> Record Sucessfully Saved.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                        $('#AddRole').val('');
+                    }
+                    else {
+                        alert("Record Is Already Exists Please Try Again.");
+                        //$('#msg').html("<div class='alert alert-danger alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Sorry!</strong> Record Is Already Exists Please Try Again.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                    }
+
+                }
+            });
+        }
+        else {
+            $('#msg').html("<span style='color: red'>Please Enter Role Name.</span>");
+        }
+    }
+
+    function Delete_Item(id) {
+        var x = confirm("Are you sure you want to Delete?");
+        if (x) {
+            $.ajax({
+                url: "/Item/Delete_Item",
+                method: "Post",
+                data: { id: id },
+                success: function (data) {
+                    alert("Successfully Deleted");
+                    //ShowMessage("Successfully Deleted", 'warning');
+                    location.reload();
+
+                }
+            })
+        }
+
+        //$('#reactivebtn').hide();
+
+    }
+    function createNew() {
+        window.location.href = "~/Item/Insert_Item";
+    }
+    function insertitempage() {
+        window.location.href = 'Item/Insert_Item';
+    }
+</script>
+
+
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+<h3>Item Details</h3>
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        <div class="col-lg-10">
+                            @*Items  &nbsp; &nbsp; <input id="deleted" name="deleted" type="checkbox" onclick="checking(this);"> DE-ACTIVATED*@
+                        </div>
+                        <div class="col-lg-2">
+                            @{if (Convert.ToString(Session["Insert"]) == "true")
+                                {
+                                    @*<a href="~/Item/Insert_Item">  <input type="button" value="Add New" class="btn btn-info" /></a>*@
+
+                                    <a class="btn btn-info ButtonShape" href="~/Item/Insert_Item">
+                                        <i class="fa fa-plus"></i>  Create New Item
+                                    </a>
+
+                                } }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="table-responsive">
+            @{if (Convert.ToString(Session["View"]) == "true")
+                {
+                    <table id="EmployeeTableList" class="table">
+                        <thead>
+                            <tr class="info" style="cursor:pointer;">
+                                <th>Item Name </th>
+                                <th>Category</th>
+                                <th>Sub Category</th>
+                                <th>UOM</th>
+                                <th>UOM Value</th>
+                                <th>Rate</th>
+                                <th>Scheme Value</th>
+                                <th>Scheme Quantity</th>
+                                <th>GST</th>
+                                <th>Status</th>
+                                <!--<th>Security</th>--> @*here*@
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var GetData in ViewBag.get_item)
+                            {
+
+                                <tr>
+                                    <td>(@GetData.id) . @GetData.item_name </td>
+                                    <td>@GetData.category </td>
+                                    <td>@GetData.sub_category </td>
+                                    <td>@GetData.UOM </td>
+                                    <td>@GetData.UOM_value  </td>
+                                    <td>@GetData.rate </td>
+                                    <td>@GetData.Scheme_values </td>
+                                    <td>@GetData.scheme_qty </td>
+                                    <td>@GetData.gst &#37;</td>
+                                    <td>
+                                        @{
+                                            if (@GetData.Active == 1)
+                                            {
+                                                <span style="color:green">Active</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color:red">DeActive</span>
+                                            }
+                                        }
+                                    </td>
+
+
+
+                                    <td style='white-space: nowrap'>
+                                        @{if (Convert.ToString(Session["Edit"]) == "true")
+                                            {
+                                                @*<a value='Edit' class='btn btn-sm btn-info' href='Edit_Item/@GetData.id'>Edit</a>*@
+                                                <a href='Edit_Item/@GetData.id' title="Edit"><i class='fa fa-edit fa-2x'></i></a>
+                                            }
+                                        }
+
+                                        @{if (Convert.ToString(Session["Delete"]) == "true")
+                                            {
+                                                @*<input type='button' value='Deactive' id="Deactive" class='btn btn-sm btn-info' onclick="Delete_Item('@GetData.id')" />*@
+                                                <a onclick="Delete_Item('@GetData.id')" title="Active And Deactive"><i class='fa fa-ban fa-2x'></i></a>
+                                            }
+                                        }
+
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+                } }
+        </div>
+    </div>
+</div>
+
+@*<p>
+        @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+        @Html.ActionLink("Back to List", "Index")
+    </p>*@
+
+

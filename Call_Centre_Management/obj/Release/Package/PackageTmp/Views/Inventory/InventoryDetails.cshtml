@@ -1,0 +1,461 @@
+﻿
+@{
+    ViewBag.Title = "InventoryDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .modal.fade .modal-dialog {
+        transform: translate3d(0, 100vh, 0);
+    }
+
+    .modal.in .modal-dialog {
+        transform: translate3d(0, 0, 0);
+    }
+
+    .Scroll {
+        height: 400px;
+        overflow-y: scroll;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        LoadRecord();
+    });
+
+    function LoadRecord()
+    {
+        var GetDisplayOrders=  @Html.Raw(Json.Encode(ViewBag.GetShowOrder));
+
+        $("#TotalAssignRecords").html(" <font class='text-primary'>" + GetDisplayOrders.length + "</font>");
+
+        $.each(GetDisplayOrders, function (i, value) {
+            $("#ShowInventory").append(
+                '<tr>' +
+                '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value.ItemId + '" class="check" > </td>' +
+                '<td>' + value.ItemId+ '</td>' +
+                '<td>' + value.cust_name + '</td>' +
+                '<td>' + value.cust_mobile + '</td>' +
+                '<td>' + value.AreaName + '</td>' +
+                '<td>' + value.zoneName + '</td>' +
+                '<td>' + value.item_name + '</td>' +
+                '<td>' + value.total_qty + '</td>' +
+                '<td>' + value.Total_Price + '</td>' +
+                '<td>' + value.Coupon + '</td>' +
+                '<td>' + value.Payment_mode + '</td>' +
+                '<td>' + value.ItemStatus+ '</td>' +
+                '<td>' + value.DeliveryAssignBy+ '</td>' +
+                '<td>' + value.InsertedDate + '</td>' +
+                '<td><input id = "txtdelStatus'+i+'"  type = "text" class= "form-control" /></td>' +
+                '</tr>');
+        });
+      
+        SelectSepcificCheckBox();
+    }
+
+    function SelectSepcificCheckBox()
+    {
+        var $checkboxes = $('#ShowInventory td input[class="checkBoxClass"]');
+        $checkboxes.change(function () {
+            var countCheckedCheckboxes = $checkboxes.filter(':checked').length;
+            $("#Counts").html(countCheckedCheckboxes);
+            if ($('#TotalAssignRecords').text() == countCheckedCheckboxes)
+            {
+                $("#allcheck").prop("checked", true);
+            }
+            else {
+                $("#allcheck").prop("checked", false);
+            }
+        });
+    }
+
+    function selectedall() {
+        var CheckedAll = $("#allcheck").is(":checked");
+        $("input[type=checkbox]").each(function (index, value) {
+            if (CheckedAll == true) {
+                $("#chkbox" + index).prop("checked", true);
+                $("#Counts").html($('#ShowInventory td input[type="checkbox"]').length);
+            }
+            else {
+                $("#Counts").html(0);
+                $("#chkbox" + index).removeAttr("checked");
+            }
+        });
+    }
+
+
+    function BindOrders() {
+        var cal = $('#txtcalendar').val();
+        var deliveryboy = $('#ddDeliveryBoy').val();
+       if (deliveryboy == '0') {
+           return alert ('!!Select Delivery Boy')
+       }
+           $.ajax({
+                method: "Post",
+                url: "/OrderViewDetails/BindOrder",
+                data: { GetDate: cal, deliveryboy: deliveryboy },
+                success: function (value) {
+                    $("#ShowInventory").empty();
+                    if (value.length > 0 && deliveryboy > 0) {
+                        $("#TotalAssignRecords").html(" <font class='text-primary'>" + value.length + "</font>");
+                        for (var i = 0; i < value.length; i++) {
+                            $("#ShowInventory").append(
+                                '<tr>' +
+                                '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value[i]["ItemId"] + '" class="check"  > </td>' +
+                                '<td>' + value[i]["ItemId"] + '</td>' +
+                                '<td>' + value[i]["cust_name"] + '</td>' +
+                                '<td>' + value[i]["cust_mobile"] + '</td>' +
+                                '<td>' + value[i]["AreaName"] + '</td>' +
+                                '<td>' + value[i]["zoneName"] + '</td>' +
+                                '<td>' + value[i]["item_name"] + '</td>' +
+                                '<td>' + value[i]["total_qty"] + '</td>' +
+                                '<td>' + value[i]["Total_Price"] + '</td>' +
+                                '<td>' + value[i]["Coupon"] + '</td>' +
+                                '<td>' + value[i]["Payment_mode"] + '</td>' +
+                                '<td>' + value[i]["ItemStatus"] + '</td>' +
+                                '<td>' + value[i]["DeliveryAssignBy"] + '</td>' +
+                                '<td>' + value[i]["InsertedDate"] + '</td>' +
+                                '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                                '</tr>');
+                        }
+                    }
+                    else {
+
+                        alert("Data is not exists in database");
+                        $("#txtcalendar").val('');
+                        var GetAssignOrders =  @Html.Raw(Json.Encode(ViewBag.GetShowOrder));
+
+                        $("#TotalAssignRecords").html(" <font class='text-primary'>" + GetAssignOrders.length + "</font>");
+                        $.each(GetAssignOrders, function (i, value) {
+                            $("#ShowInventory").append(
+                                '<tr>' +
+                                '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value.ItemId + '" class="check" > </td>' +
+                                '<td>' + value.ItemId + '</td>' +
+                                '<td>' + value.cust_name + '</td>' +
+                                '<td>' + value.cust_mobile + '</td>' +
+                                '<td>' + value.AreaName + '</td>' +
+                                '<td>' + value.zoneName + '</td>' +
+                                '<td>' + value.item_name + '</td>' +
+                                '<td>' + value.total_qty + '</td>' +
+                                '<td>' + value.Total_Price + '</td>' +
+                                '<td>' + value.Coupon + '</td>' +
+                                '<td>' + value.Payment_mode + '</td>' +
+                                '<td>' + value.ItemStatus + '</td>' +
+                                '<td>' + value.DeliveryAssignBy + '</td>' +
+                                '<td>' + value.InsertedDate + '</td>' +
+                                '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                                '</tr>');
+                        });
+                    }
+                    $("#Counts").html(0);
+                    $("#allcheck").prop("checked", false);
+                    SelectSepcificCheckBox();
+                }
+            });
+    }
+
+    function DispactchOrder()
+    {
+        var Orders = [];
+        var SelectedOrder = [];
+        var DeliveryId = $("#ddDeliveryBoy").val();
+        var GetCheckId = $("[id^=chkbox]").map(function () { return this.id }).get();
+        $(GetCheckId).each(function (index, value) {
+            var checkbox = $("#" + value).is(":not(:checked)");
+            if (checkbox == true) {
+                var GetId = $("#chkbox" + index).val();
+                Orders.push(GetId);
+            }
+        });
+
+        $(GetCheckId).each(function (index, value) {
+            var checkbox = $("#" + value).is(":checked");
+            if (checkbox == true) {
+                var GetId = $("#chkbox" + index).val();
+                SelectedOrder.push(GetId);
+            }
+        });
+
+     
+        if ((Orders.length > 0 || SelectedOrder.length>0) && DeliveryId > 0) {
+            $.ajax({
+                url: "/Inventory/DispatchOrder",
+                method: "post",
+                data: { GetItemId: Orders, DeliveryBoyId: DeliveryId, SelectedOreder:SelectedOrder},
+                success: function (Result) {
+                    if (Result.length > 0) {
+                        alert("Record Updated successfull..");
+                        $("#Counts").html(0);
+                        $("#ShowInventory").empty();
+                        $("#allcheck").prop("checked", false);
+                        $("#TotalAssignRecords").html("<font class='text-primary'>" + Result.length + "</font>");
+                        $.each(Result, function (i, value) {
+                           $("#ShowInventory").append(
+                                '<tr>' +
+                                '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value.ItemId + '" class="check" > </td>' +
+                                '<td>' + value.ItemId + '</td>' +
+                                '<td>' + value.cust_name + '</td>' +
+                                '<td>' + value.cust_mobile + '</td>' +
+                                '<td>' + value.AreaName + '</td>' +
+                                '<td>' + value.zoneName + '</td>' +
+                                '<td>' + value.item_name + '</td>' +
+                                '<td>' + value.total_qty + '</td>' +
+                                '<td>' + value.Total_Price + '</td>' +
+                                '<td>' + value.Coupon + '</td>' +
+                                '<td>' + value.Payment_mode + '</td>' +
+                                '<td>' + value.ItemStatus + '</td>' +
+                                '<td>' + value.DeliveryAssignBy + '</td>' +
+                                '<td>' + value.InsertedDate + '</td>' +
+                                '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                                '</tr>');
+                        });
+                        SelectSepcificCheckBox();
+                    }
+                    else
+                    {
+                        alert("Something Wrong..");
+                    }
+                }
+            });
+        }
+        else {
+            alert("Please Select Data");
+        }
+    }
+
+    function CreateInventroy() {
+        var GetCheckedList = [];
+        var DeliveryId = $("#ddDeliveryBoy").val();
+
+        //$(".checkBoxClass:checked").each(function (index, value) {
+        //    GetCheckedList.push(this.value);
+        //});
+        var GetCheckId = $("[id^=chkbox]").map(function () { return this.id }).get();
+        $(GetCheckId).each(function (index, value) {
+            var checkbox = $("#" + value).is(":checked");
+            if (checkbox == true) {
+                var GetId = $("#chkbox" + index).val();
+                GetCheckedList.push(GetId);
+            }
+        });
+
+        if (GetCheckedList.length > 0 && DeliveryId > 0) {
+            $.ajax({
+                url: "/Inventory/InventoryCreate",
+                method: "post",
+                data: { GetItemId: GetCheckedList, DeliveryBoyId: DeliveryId },
+                success: function (Result) {
+                    $("#TotalRawcount").text(Result.length);
+                    $("#ShowsInventorys").empty();
+                    $.each(Result, function (i, value) {
+                    $("#ShowsInventorys").append(
+                        '<tr>' +
+                        '<td>' + value.RawItemName + '</td>' +
+                        '<td>' + value.item_qty + '</td>' +
+                        '</tr>');
+                    });
+                    $("#myModal2").modal({
+                        show: true,
+                        backdrop: 'static'
+                    });
+                }
+            });
+        }
+        else {
+            alert("Something Wrong..");
+        }
+    }
+
+    function CancelItems()
+    {
+        var GetCheckedList = [];
+        var DeliveryId = $("#ddDeliveryBoy").val();
+        //$(".checkBoxClass:checked").each(function (index, value) {
+        //    GetCheckedList.push(this.value);
+        //});
+
+        var GetCheckId = $("[id^=chkbox]").map(function () { return this.id }).get();
+        $(GetCheckId).each(function (index, value) {
+            var checkbox = $("#" + value).is(":checked");
+            if (checkbox == true) {
+                var GetId = $("#chkbox" + index).val();
+                GetCheckedList.push(GetId);
+            }
+        });
+
+
+        if (GetCheckedList.length > 0 && DeliveryId > 0) {
+            $.ajax({
+                url: "/Inventory/CancelItem",
+                method: "post",
+                data: { GetItemId: GetCheckedList, DeliveryBoyId: DeliveryId },
+                success: function (Result)
+                {
+                    if (Result.length > 0) {
+                        alert("Record Cancel successfull..");
+                        $("#Counts").html(0);
+                        $("#allcheck").prop("checked", false);
+                        $("#ShowInventory").empty();
+                        $("#TotalAssignRecords").html(" <font class='text-primary'>" + Result.length + "</font>");
+                        $.each(Result, function (i, value) {
+                            $("#ShowInventory").append(
+                                '<tr>' +
+                                '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value.ItemId + '" class="check" > </td>' +
+                                '<td>' + value.ItemId + '</td>' +
+                                '<td>' + value.cust_name + '</td>' +
+                                '<td>' + value.cust_mobile + '</td>' +
+                                '<td>' + value.AreaName + '</td>' +
+                                '<td>' + value.zoneName + '</td>' +
+                                '<td>' + value.item_name + '</td>' +
+                                '<td>' + value.total_qty + '</td>' +
+                                '<td>' + value.Total_Price + '</td>' +
+                                '<td>' + value.Coupon + '</td>' +
+                                '<td>' + value.Payment_mode + '</td>' +
+                                '<td>' + value.ItemStatus + '</td>' +
+                                '<td>' + value.DeliveryAssignBy + '</td>' +
+                                '<td>' + value.InsertedDate + '</td>' +
+                                '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                                '</tr>');
+                        });
+                        SelectSepcificCheckBox();
+                    }
+                    else { alert("Something Wrong.."); }
+                }
+            });
+        }
+        else {
+            alert("please select Delivery Boy and Order for cancel..");
+        }
+    }
+
+
+
+
+</script>
+@{
+    if (Convert.ToString(Session["View"]) == "true")
+    {
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="col-lg-3">
+                    <label>Assign date</label>&nbsp;&nbsp;
+                    <input type="date" id="txtcalendar" class="ShapeFields" />
+                </div>
+
+                <div class="col-lg-3">
+                    <label>Delivery Boy</label>&nbsp;&nbsp;
+                    <select id="ddDeliveryBoy" class="btn btn-default ShapeFields">
+                        <option value="0">-- Select Delivery Boy -- </option>
+                        @{
+                            foreach (var n in ViewBag.DeliveryBoyDetails)
+                            {
+                                <option value="@n.id">@n.fullName</option>
+                            }
+                        }
+                    </select>
+
+                </div>
+
+                <div class="col-lg-6" style="margin-top:2%">
+                    <input type="submit" value="Search" id="SearchAssign" class="btn btn-primary ButtonShape" onclick="BindOrders()" />
+                    <input type="button" id="dispatch" value="Dispatch Ready" class="btn btn-primary ShapeFields" onclick="DispactchOrder()" />
+                    <input type="button" id="Inventory" value="Inventory" class="btn btn-success ShapeFields" onclick="CreateInventroy()" />
+                    <input type="button" id="CancelItems" value="Cancel Item" class="btn btn-danger ShapeFields" onclick="CancelItems()" />
+                </div>
+
+            </div>
+        </div>
+    }
+}
+
+@{
+    if (Convert.ToString(Session["View"]) == "true")
+    {
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="col-lg-2">
+                    <h4 class="btn btn-primary ShapeFields">
+                        Total Assign Record : <span id="TotalAssignRecords" class="badge badge-primary">0</span>
+                    </h4>
+                </div>
+
+                <div class="col-lg-offset-2 col-lg-3">
+                    <h4 class="btn btn-primary ShapeFields">
+                        Selected Item  <span id="Counts" class="badge badge-primary">0</span>
+                    </h4>
+                </div>
+                
+            </div>
+        </div>
+        <div>
+            <span></span>
+        </div>
+        <div class="table-responsive">
+            <table style="border-collapse: collapse" class="table table-striped table-hover">
+                <thead>
+                    <tr class="info">
+                        <th>All<input type="checkbox" id="allcheck" onchange="selectedall()" class="checkBoxClass" /></th>
+                        <th>Item Id</th>
+                        <th>Customer Name</th>
+                        <th>Mobile No</th>
+                        <th>Area</th>
+                        <th>Zone</th>
+                        <th>Item Name</th>
+                        <th>Total Qty</th>
+                        <th>Total Amt</th>
+                        <th>Coupon</th>
+                        <th>Pay Mode</th>
+                        <th>Status</th>
+                        <th>Delivery BoyName</th>
+                        <th>Order Date</th>
+                        <th>Delivery Remark</th>
+                    </tr>
+                </thead>
+                <tbody id="ShowInventory">
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+
+
+<div class="modal fade bs-example-modal-lg" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel"> ABOUT </h4>
+            </div>
+            <div class="modal-body Scroll">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button type="button" class="btn btn-primary">Total RawItem <span class="badge" id="TotalRawcount">0</span></button>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-lg-12 table-responsive">
+                        <table class="table table-striped  ">
+                            <thead>
+                                <tr class="info">
+                                    <th>RawItem Name</th>
+                                    <th>Quentity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ShowsInventorys">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

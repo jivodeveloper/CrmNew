@@ -1,0 +1,233 @@
+﻿@model Call_Centre_Management.Models.Employees
+@{
+    Layout = "~/Views/Shared/Login_Layout.cshtml";
+}
+
+@*<link href="/Content/bootstrap.css" rel="stylesheet">
+    <link href="/Content/site.css" rel="stylesheet">
+    <script src="/Scripts/jquery-2.1.0.js"></script>
+    <script src="/Scripts/jquery-2.1.3.js"></script>
+    <script src="/Scripts/bootstrap.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>*@
+
+<style>
+    .info {
+        cursor: pointer;
+    }
+
+    body {
+        background-color: #A8AEB7
+    }
+
+    .txtbox {
+    }
+</style>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#userName1').focus();
+    });
+    function login() {
+        //var EmpLoyeeLogins = {}
+        //EmpLoyeeLogins.userName = $('#userName').val();
+        //EmpLoyeeLogins.Password = $('#password').val();
+        //  var pwd = btoa($("#password1").val());
+
+        if ($('#userName1').val() === "" && $('#password1').val() === "") {
+            return alert("!!!!Please UserName ,Password  ");
+        }
+
+        $('#loader1').fadeIn();
+        $.ajax({
+            url: '/Login/Emp_Login',
+            method: 'GET',
+            data: { Username: $('#userName1').val(), Password: $("#password1").val() },
+            success: function (data) {
+                if (data != false) {
+                    //window.location = "../Login/Login";
+
+                    checkDashboard();
+                    $('#loader1').fadeOut();
+                }
+                else {
+                    // window.location = "../Login/Employee_Login";
+                    // alert('Invalid UserName ,Password ');
+                    $('#password1').val('');
+                    $('#password1').focus();
+                    $('#span1').fadeIn();
+                    $('#span1').html('<font color="Red">!! Invalid UserName OR Password </font>');
+                    $('#span1').delay(5000).fadeOut();
+                    $('#loader1').fadeOut();
+
+                }
+                //if (data != "window.location = 'Login/Emp_Login'") {
+                //    ShowMessage(data, 'error');
+                //    $('#password').val('');
+                //    $('#userName').focus();
+                //}
+            }
+        })
+    };
+
+    function ForgetPassword() {
+
+        if ($('#userName1').val() != "") {
+            $.ajax({
+                url: '/Common/sendmail',
+                method: 'post',
+                data: { username: $('#userName1').val() },
+                success: function (data) {
+                    if (data == true) {
+                        alert("Password Send your Register mail.Please check your Mail ");
+                    }
+                    else if (data == false) {
+                        alert("Invalid Register Email-Id ");
+                    }
+                    else if (data == 2) {
+                        alert("Please Proper Enter Email Address");
+                    }
+                    else if (data == 3) {
+                        alert("OOps Something Error");
+                    }
+
+                }
+            });
+        }
+        else { alert("please Enter username"); }
+    }
+
+    function checkDashboard() {
+
+        $.ajax({
+            url: "/Login/FetchDashboard",
+            method: "Post",
+            success: function (data) {
+                //window.location = "../Login/Login";
+                window.location = data;
+            }
+        });
+
+        //$.ajax({
+        //    url: '/Login/fetchdashboard',
+        //    method: 'post',
+        //    success: function (data) {
+        //        window.location = data;
+        //    }
+        //});
+
+    }
+
+    //$(document).on('keydown', '.txtbox', function () {
+    //    $('#userName1').autocomplete({
+    //        source: function (request, response) {
+    //            $.ajax({
+    //                url: "/Common/searchUser",
+    //                //url: "/Order/AutocompleteItem",
+    //                type: "POST",
+    //                dataType: "json",
+    //                data: { prefix: request.term },
+    //                success: function (data) {
+    //                    if (data.length > 0) {
+    //                        response($.map(data, function (item) {
+    //                            return { label: item.userName, value: item.userName, data: item.userName };
+    //                        }))
+    //                    }
+    //                    else {
+    //                        $('#userName1').val('');
+    //                    }
+    //                }
+    //            })
+    //        }
+    //, select: function (event, ui) {
+    //    var GetNumericvalue = id.substring(8, id.length);
+    //    if ($("#txt_itemqty" + GetNumericvalue).val() != "" && $("#" + id).val() != "") {
+    //        $('#addMore2').removeAttr("disabled");
+    //        $('#btn_nsert').removeAttr("disabled");
+
+    //    }
+    //    //if ($("#itemQuentity" + GetNumericvalue).val() !== ""){$("#ErrorqtyMsg" + GetNumericvalue).hide();}
+
+    //    var SendItemName = ui.item.data;
+    //    GetItemRate(SendItemName, id);
+    //}
+    //    });
+    //});
+</script>
+<div>
+    <div style="text-align: center;margin-top:5%;">
+
+        <div class="login-logo" style="padding:4px;">
+            <a href="#">
+                <img src="~/Img/jivo-wellness.png" />
+            </a>
+        </div><!-- /.login-logo -->
+        <div class="panel panel-primary" style="display:inline-block; width:370px; text-align:left">
+            <div class="panel-heading">
+                <h3 class="panel-title" style="align-content:center">LOGIN DETAILS</h3>
+            </div>
+            <div class="panel-body">
+                @*<form action="../Login/Emp_Login" method="post">*@
+                <table class="table-condensed">
+                    <tr>
+                        <td>USER NAME</td>
+                        <td>
+
+                            <input type="text" id="userName1" class="form-control txtbox" />
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>PASSWORD</td>
+
+                        <td>
+                            <input type="password" id="password1" class="form-control" />
+                            <span id="span1"></span>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td align="right"></td>
+                        <td align="right">
+
+                            <input type="submit" onclick="login()" value="LOGIN" class="btn btn-primary" />&nbsp;&nbsp;&nbsp;
+
+                            <a href="#" onclick="ForgetPassword()">Forget Password ?</a>
+                        </td>
+                    </tr>
+                </table>
+                @*</form>*@
+            </div>
+        </div>
+    </div>
+
+
+    <div class="panel panel-primary" style="float: left;width: 100%; display:none;" id="popupdiv">
+
+        <div class="panel-body">
+            <table class="table table-condensed table-hover">
+                <tr>
+                    <td>ENTER EMAILID:</td>
+                    <td><input id="email" type="text" class="form-control" placeholder="YOUR EMAIL ID" /> </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2" align="center" style="padding-top:32px; padding-left:160px;">
+                        <input type="button" value="SUBMIT" onclick="CheckEmailId()" class="btn btn-info" />
+                        <input type="button" value="CANCEL" onclick="$('#popupdiv').dialog('close');" class="btn btn-info" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="container body-content">
+        <div id="message" style="display:none;"></div>
+        <footer id="footerLayout" style="height:35px; ">
+            <p style="text-align:right;margin-right:30px"> &copy; @DateTime.Now.Year - Developed by Prabhjot Singh & Nitin  </p>
+        </footer>
+    </div>
+</div>
+

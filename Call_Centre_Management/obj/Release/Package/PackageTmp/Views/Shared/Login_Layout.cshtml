@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="/Content/bootstrap.css" rel="stylesheet">
+    <link href="/Content/site.css" rel="stylesheet">
+    <script src="/Scripts/jquery-2.1.0.js"></script>
+    <script src="/Scripts/jquery-2.1.3.js"></script>
+    <script src="/Scripts/bootstrap.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <style>
+        .info {
+            cursor: pointer;
+        }
+
+        body {
+            background-color: #A8AEB7
+        }
+    </style>
+    <script>
+        function TableSoting(getTable) {
+            var table = $(getTable).DataTable();
+            table.destroy();
+            $(getTable).DataTable();
+        }
+
+        $(function () {
+
+            //$(document).tooltip();
+            $('input, textArea').bind('focusout', function () {
+                //var x = $(this).val().toUpperCase();
+                //$(this).val(x);
+            });
+
+            $('#loader').hide();
+            $('#loader1').hide();
+
+            //   $('.table').tablesorter();
+
+            $(".info").css("cursor-pointer");
+
+            //$.ajax({
+            //    url: '/home/searchMessagesFromAndroid',
+            //    data: { search: '', fromDate: null, toDate: null, read: 0 },
+            //    success: function (data) {
+            //        var x = data.length;
+            //        if (x > 0) {
+            //            $('#messageCenter').css("color", "red");
+            //        }
+
+            //        $('#loader').fadeOut();
+            //    },
+            //    error: function () {
+
+            //        ShowMessage("ERROR", "error");
+            //        $('#loader').fadeOut();
+            //    }
+            //}); //
+
+            //$.ajax({
+            //    url: '/Home/NewReatailerReport',
+
+            //    success: function (data) {
+            //        for (var i in data) {
+            //            if (data[i]["status"] == "Open") {
+            //                $('#messageCenter').css("background-color", "orange");
+            //            }
+
+            //        }
+            //        $('#loader').fadeOut();
+            //    },
+            //    error: function () {
+            //        ShowMessage("ERROR", "error");
+            //        $('#loader').fadeOut();
+            //    }
+            //});
+
+            $(document).keyup(function (e) {
+                // CTRL + ALT + E
+                // SR ENTRY
+                if (e.ctrlKey && e.altKey && e.keyCode == 69) {
+                    document.location = $('#entry').attr('href');
+                }
+
+                // CTRL + ALT + E
+                // REPORTS
+                if (e.ctrlKey && e.altKey && e.keyCode == 82) {
+                    document.location = $('#reports').attr('href');
+                }
+
+                // CTRL + ALT + Q
+                // BEATS CREATE
+                if (e.ctrlKey && e.altKey && e.keyCode == 81) {
+                    document.location = $('#beatCreate').attr('href');
+                }
+
+                // CTRL + ALT + B
+                // BEATS CREATE
+                if (e.ctrlKey && e.altKey && e.keyCode == 66) {
+                    document.location = $('#beatAssign').attr('href');
+                }
+
+                // CTRL + ALT + F
+                // FORECAST
+                if (e.ctrlKey && e.altKey && e.keyCode == 70) {
+                    document.location = $('#checkForecast').attr('href');
+                }
+            });
+        });
+    </script>
+    @*<script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date(); a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+            ga('create', 'UA-68039891-1', 'auto');
+            ga('send', 'pageview');
+
+        </script>*@
+</head>
+<body>
+    @*<div class="navbar navbar-inverse navbar-fixed-top" id="headerLayout">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    @Html.ActionLink("DSR", "Index", "Home", null, new { @class = "navbar-brand" })
+                </div>
+                <div class="navbar-collapse collapse">
+
+                </div>
+            </div>
+        </div>*@
+    <div class="container body-content">
+        <div id="message" style="display:none"></div>
+        @RenderBody()
+
+        <footer id="footerLayout">
+            <p>&copy; @DateTime.Now.Year - Developed by Prabhjot Singh & Nitin  </p>
+        </footer>
+    </div>
+    <div id="loader1" style="background-color: rgba(128, 128, 128, 0.5); height: 100%; width: 100%; display: table-cell; vertical-align: middle; text-align: center; position: fixed; z-index: 500; top: 0; left: 0; ">
+        <span style="display: inline-block; height: 100%; vertical-align: middle; "></span>
+        <img src="~/Content/images/ajax-loader.gif" />
+    </div>
+    <div id="loader" style="background-color: rgba(128, 128, 128, 0.5); height: 100%; width: 100%; display: table-cell; vertical-align: middle; text-align: center; position: fixed; z-index: 500; top: 0; left: 0; ">
+        <span style="display: inline-block; height: 100%; vertical-align: middle; "></span>
+        @*<img src="~/Img/Loading.gif" />*@
+        @*<img src="~/Content/images/1_loder.gif" />*@
+        <img src="~/Content/images/ajax-loader.gif" />
+    </div>
+    <div id="emailPopup" style="display:none" title="E-MAIL">
+        <table class="table table-condensed">
+            <tr><td><input typem="text" id="fileName" style="display:none" /></td></tr>
+            <tr><td><input type="email" id="emailId" class="form-control" placeholder="E-MAIL" /></td></tr>
+            <tr><td><input type="text" id="subject" class="form-control" placeholder="SUBJECT" /></td></tr>
+            <tr><td><textarea id="body" class="form-control" placeholder="BODY"></textarea></td></tr>
+            <tr><td><input type="button" class="btn btn-default" onclick="sendEmail()" value="SEND" /></td></tr>
+        </table>
+    </div>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

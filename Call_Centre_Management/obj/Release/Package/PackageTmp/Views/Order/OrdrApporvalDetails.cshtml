@@ -1,0 +1,349 @@
+﻿
+@{
+    ViewBag.Title = "OrdrApporvalDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Order Apporval Details</h2>
+
+<style type="text/css">
+    .modal.fade:not(.in).right .modal-dialog {
+        -webkit-transform: translate3d(25%, 0, 0);
+        transform: translate3d(25%, 0, 0);
+    }
+
+    .modal {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+        display: table;
+        position: fixed;
+        left: 0;
+        right: 30%;
+        top: 50%;
+        /* border: 1px solid;*/
+        -webkit-transform: translateY(-50%);
+        -moz-transform: translateY(-50%);
+        -ms-transform: translateY(-50%);
+        -o-transform: translateY(-50%);
+        transform: translateY(-50%);
+        background: rgba(0,0,0,0.0);
+    }
+</style>
+
+<script type="text/javascript">
+    var SearchId = "", TblId = "";
+    $(document).ready(function () {
+
+        $('a[data-toggle="pill"]').on('show.bs.tab', function (e) {
+            localStorage.setItem('activeTab', $(e.target).attr('href'));
+        });
+        var activeTab = localStorage.getItem('activeTab');
+        if (activeTab) {
+            $('#AprovelPanel a[href="' + activeTab + '"]').tab('show');
+        }
+        PopUpfix();
+        // FilltersRecord(SearchId, TblId);
+        //$("#AprovalSearch").on("keyup", function () {
+        //    var value = $(this).val().toLowerCase();
+        //    $("#OrderApprovals tr").filter(function () {
+        //        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        //    });
+        //});
+
+        dataLoad();
+    });
+
+
+    function FilltersRecord(SearchId, TblId) {
+        if (SearchId != '' && TblId != '') { //This Condition Not compulsory
+            var GetsearchId = $(SearchId).attr("id");
+            var value = $("#" + GetsearchId).val().toLowerCase();
+            $("#" + TblId + " tr").filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        }
+    }
+
+
+
+    function dataLoad() {
+        $.ajax({
+            url: "/Order/fetchORderApprovalDetails",
+            method: "Get",
+            //data: {id :id}
+            success: function (data) {
+                des(data);
+            }
+        });
+    }
+
+    function PopUpfix() {
+        $("#CommentPopup").modal({
+            show: false,
+            backdrop: 'static'
+        });
+    }
+
+
+    function GetApproval(id, Getapp) {
+        var s = $(id).attr("value");
+        $('#SpanOrderId').html('Order ID : ' + Getapp);
+        $('#SpanReasonId').html('Reason of ' + s);
+    }
+
+    function des(data) {
+        if (data != null) {
+
+            $('#OrderApprovals').empty();
+            for (var i = 0; i < data.ordAppList.length; i++) {
+                $('#OrderApprovals').append(
+
+                    '<tr><td>' + data.ordAppList[i]["id"] + '</td>' +
+                    '<td>' + data.ordAppList[i]["orderid"] + '</td>' +
+                    '<td>' + data.ordAppList[i]["caller"] + '</td>' +
+                    '<td>' + data.ordAppList[i]["Assigncaller"] + '</td>' +
+
+                    '<td>' + data.ordAppList[i]["custMobile"] + '</td>' +
+                    '<td>' + data.ordAppList[i]["custName"] + '</td>' +
+
+                    '<td>' + data.ordAppList[i]["totalAmount"] + '</td>' +
+                    '<td>' + data.ordAppList[i]["totalQty"] + '</td>' +
+                    '<td>' + data.ordAppList[i]["Address"] + '</td>' +
+                    '<td>' + data.ordAppList[i]["Remark"] + '</td>' +
+
+                    '<td>' + data.ordAppList[i]["insertedDate"] + '</td>' +
+                    '<td>' + data.ordAppList[i]["insertedby"] + '</td>' +
+
+                    //'<td><input id="Approve" type="button" value="Approved" onclick="GetApproval(this,' + data.ordAppList[i]["orderid"] + ')" data-toggle="modal" data-target="#CommentPopup">' +
+                    '<td><button id="Approve" value="Approved" onclick="GetApproval(this,' + data.ordAppList[i]["orderid"] + ')" data-toggle="modal" data-target="#CommentPopup" title="Approved"><i class="fa fa-check fa-2x" aria-hidden="true" style="color:green"></i></button>' +
+                    //'<input id="disApprove' + i + '" type="button" value="NotApproved" onclick="GetApproval(this,' + data.ordAppList[i]["orderid"] + ')" data-toggle="modal"  data-target="#CommentPopup">' +
+                    '<td><button id="disApprove" value="NotApproved" onclick="GetApproval(this,' + data.ordAppList[i]["orderid"] + ')" data-toggle="modal" data-target="#CommentPopup" title="NotApproved"><i class="fa fa-close fa-2x" aria-hidden="true" style="color:red"></i></button>' +
+                    '</tr>'
+                );
+            }
+
+            $('#CheckApprovedStatus').empty();
+
+            for (var j = 0; j < data.GetAfterStatusOrdAppList.length; j++) {
+                var GetClass = data.GetAfterStatusOrdAppList[j]["StatusName"] === 'Approved' ? 'class="btn btn-success ButtonShape"' : 'class="btn btn-danger ButtonShape"';
+                $('#CheckApprovedStatus').append(
+                    '<tr>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["id"] + '</td> ' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["orderid"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["caller"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["Assigncaller"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["custMobile"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["custName"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["totalAmount"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["totalQty"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["Address"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["Remark"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["insertedDate"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["insertedby"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["Comment"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["UpdatedBy"] + '</td>' +
+                    '<td>' + data.GetAfterStatusOrdAppList[j]["UpdatedDate"] + '</td>' +
+                    '<td>' + '<label ' + GetClass + '>' + data.GetAfterStatusOrdAppList[j]["StatusName"] + '</label>' + '</td>' +
+                    '</tr>'
+                );
+            }
+        }
+    }
+    function SetComment(get) {
+        var s = $(get).text();
+        $("#TxtComment").val(s);
+    }
+    function ClosePopup() {
+        $("#TxtComment").val("");
+    }
+    function Submit() {
+        var GetRemark = $("#TxtComment").val();
+        var GetorderId = $('#SpanOrderId').text();
+        var GetReason = $('#SpanReasonId').text();
+        var SetOrderId = GetorderId.split("Order ID : ");
+        var setReason = GetReason.split("Reason of ");
+        if (GetRemark != "") {
+            $.ajax({
+                url: "/Order/OrderApprovalAdd",
+                method: "Post",
+                data: { Comment: GetRemark, GetOrderId: SetOrderId[1], GetName: setReason[1] },
+                success: function (Result) {
+                    if (Result > 0) {
+                        $("#CommentPopup").modal("hide");
+                        alert("Your Request are" + setReason);
+                        dataLoad();
+                    }
+                    else { alert("Sorry Please Try Again"); }
+                }
+            });
+        }
+        else {
+            alert("Please Select Reason" + setReason);
+        }
+    }
+
+</script>
+
+@*function load() {
+    $.ajax({
+        url: "/Order/fetchORderApprovalDetails",
+        method: "Get",
+        //data: {id :id}
+        success: function (data) {
+        },
+        error: function () {
+        }
+    });*@
+
+
+<div id="CommentPopup" class="modal fade right">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" onclick="ClosePopup()" data-dismiss="modal">&times;<span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Please Enter Reason</h4>
+            </div>
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-lg-12">
+
+                        <div class="col-lg-9">
+                            <label id="SpanOrderId"></label>
+                            <label id="SpanReasonId"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-3"><label>Enter Reason</label></div>
+                        <div class="col-lg-9">
+                            <textarea id="TxtComment"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <button class="well well-sm" id="DoneComment" onclick="SetComment(this)">This Order is not belongs to you</button>
+                        <button class="well well-sm" id="NotDoneComment" onclick="SetComment(this)">Contact To Admin</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary ButtonShape" id="CommentSave" onclick="Submit()">
+                        Submit
+                    </button>
+                    <button type="button" class="btn btn-default ButtonShape" onclick="ClosePopup()" data-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container col-lg-12">
+    <div class="p-3 mb-2 bg-info text-white panel-heading">
+        <!-- Nav pills -->
+        <ul class="nav nav-pills" role="tablist" id="AprovelPanel">
+            <li class="nav-item">
+                <a class="nav-link active" style="border-radius: 8px;" data-toggle="pill" href="#CancelOrder"> <h4>Cancel Order</h4></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" style="border-radius: 8px;" data-toggle="pill" href="#CheckStatus"><h4>Check Status</h4></a>
+            </li>
+            @*<li class="nav-item">
+                    <a class="nav-link" style="border-radius: 8px;" data-toggle="pill" href="#State"><h4>Add State</h4></a>
+                </li>*@
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div id="CancelOrder" class="container tab-pane active col-lg-12">
+                <br>
+                <div class="row">
+                    <div class="col-lg-offset-9">
+                        <label>Filter</label>&nbsp;&nbsp;
+                        <input id="AprovalSearch" type="text" placeholder="Search.." onkeyup="FilltersRecord(this,'OrderApprovals')">
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-lg-12 table-responsive">
+                        <table id="OrderApproval" class="table">
+                            <thead>
+                                <tr class="info" style="cursor:pointer;">
+                                    <th>Id</th>
+                                    <th>Order Id</th>
+                                    <th>Caller </th>
+                                    <th>Assign Caller</th>
+                                    <th>Mobile No.</th>
+                                    <th>Customer Name</th>
+                                    <th>Total Amt</th>
+                                    <th>Total Qty</th>
+                                    <th>Address</th>
+                                    <th>Remark</th>
+                                    <th>Date</th>
+                                    <th>Insert By</th>
+                                    <th>Action</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="OrderApprovals">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="CheckStatus" class="container tab-pane fade col-lg-12">
+                <br>
+                <div class="row">
+                    <div class="col-lg-offset-9">
+                        <label>Fillter</label>&nbsp;&nbsp;
+                        <input id="AfterApprovedStatus" type="text" placeholder="Search.." onkeyup="FilltersRecord(this,'CheckApprovedStatus')">
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-lg-12 table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr class="info" style="cursor:pointer;">
+                                    <th>Id</th>
+                                    <th>Order Id</th>
+                                    <th>Caller </th>
+                                    <th>Assign Caller</th>
+                                    <th>Mobile No.</th>
+                                    <th>Customer Name</th>
+                                    <th>Total Amt</th>
+                                    <th>Total Qty</th>
+                                    <th>Address</th>
+                                    <th>Remark</th>
+                                    <th>Date</th>
+                                    <th>Insert By</th>
+                                    <th>Comment</th>
+                                    <th>Updated By</th>
+                                    <th>Updated Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="CheckApprovedStatus">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="Zone" class="container tab-pane fade col-lg-12">
+                <br>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <span class="well well-sm">Zone Area</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

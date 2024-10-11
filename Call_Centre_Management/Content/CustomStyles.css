@@ -1,0 +1,36 @@
+﻿.WebGrid table, .WebGrid th, .WebGrid td {
+    
+    border-collapse: collapse;
+}
+
+.WebGrid th, .WebGrid td {
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+
+.WebGrid th {
+    text-align: left;
+    background-color: grey;
+    color: white;
+}
+
+.WebGrid tr {
+    border: 1px solid gray;
+}
+
+.formTable {
+    
+}
+
+.formTable td {
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+
+select {
+    width:150px;
+}

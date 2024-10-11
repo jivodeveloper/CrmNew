@@ -1,0 +1,195 @@
+﻿@model Call_Centre_Management.Models.Area
+@{
+    ViewBag.Title = "Update Area";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Edit</h2>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        $('#txt_Area_Name').focus();
+    });
+    function AreaUpdate(id) {
+        var Values = {};
+        Values.id = id;
+        Values.Area_Name = $('#txt_Area_Name').val();
+        Values.State_id = $('#dd_state').val();
+        Values.Zone_id = $('#dd_zone').val();
+        Values.pincode = $('#txt_pincode').val();
+
+        if (Values.Area_Name.length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Area/Edit",
+                method: "Post",
+                data: { area: Values },
+                success: function (Result) {
+                    if (Result == '1') {
+                        //$('#msg').html("<div class='alert alert-success alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Success!</strong> Record Sucessfully Saved.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                        alert("Area Registered Successfully !!.");
+                        location.reload();
+                    }
+                    else if (Result == '-1') {
+                        alert("Area Name Is Already Exists Please Try Again.");
+                        //$('#msg').html("<div class='alert alert-danger alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Sorry!</strong> Record Is Already Exists Please Try Again.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                    }
+                    else {
+                        alert("Oops....Something Gone Wrong ! Please Try Again");
+                    }
+                }
+            });
+        }
+        else {
+            //   $('#msg').html("<span style='background-color:red;color:white'>Please Enter User Name.</span>");
+            alert("Please Enter Area Name.");
+        }
+    }
+
+    function checkUserName() {
+        if ($('#txt_userName').val().length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Employee/checkuserName",
+                method: "Post",
+                data: { username: $('#txt_userName').val() },
+                success: function (Result) {
+                    if (Result == true) {
+                        // $('#lbl_userMSG').val('User Name Alredy Exists');
+                        //   alert("User Name Alredy Exists");
+                        $("#txt_userName").val('');
+                        $("#lbl_userMSG").html("<span style='color:red'>Allready Exists</span>");
+                    }
+                    else {
+                        //   $('#lbl_userMSG').val('User Name Available');
+                        $("#lbl_userMSG").html("<span style='color:Green'>User Name Available</span>");
+                    }
+                }
+            })
+        }
+    }
+
+</script>
+
+
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+
+<div class="form-horizontal">
+    <hr />
+    <span id="msg"></span>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Area Name</label>
+        </div>
+        <div class="col-md-3">
+            <input type="text" id="txt_Area_Name" value="@ViewBag.Edit_Area.Area_Name" placeholder="Enter Area Name" class="form-control" style="border-radius: 20px;font-size: 14px;" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label> State</label>
+        </div>
+        <div class="col-md-3">
+            <select name="cars" id="dd_state" class="form-control" style="border-radius: 20px;font-size: 14px;">
+                <option value='0'>--- Select State ---</option>
+                @{
+                    foreach (var state in ViewBag.getstate)
+                    {
+                        if (Convert.ToInt32(ViewBag.Edit_Area.State_id) == state.Id)
+                        {
+                            <option value="@state.Id" selected>@state.State</option>
+                        }
+                        else
+                        {
+                            <option value="@state.Id">@state.State</option>
+                        }
+                    }
+
+                }
+            </select>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label> ZONE</label>
+        </div>
+        <div class="col-md-3">
+            <select name="cars" id="dd_zone" class="form-control" style="border-radius: 20px;font-size: 14px;">
+                <option value='0'>--- Select Zone ---</option>
+                @{
+                    foreach (var zone in ViewBag.getzone)
+                    {
+                        if (Convert.ToInt32(ViewBag.Edit_Area.Zone_id) == zone.Id)
+                        {
+                            <option value="@zone.Id" selected>@zone.role</option>
+                        }
+                        else
+                        {
+                            <option value="@zone.Id">@zone.role</option>
+                        }
+                    }
+
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Pincode</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_pincode" value="@ViewBag.Edit_Area.pincode" placeholder="Enter Pin Code" class="form-control" style="border-radius: 20px;font-size: 14px;" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-3">
+            @{
+                if (Convert.ToString(Session["Edit"]) == "true")
+                {
+
+                    @*<input type="submit" value="Update" onclick="AreaUpdate(@ViewBag.Edit_Area.id)" class="btn btn-primary" />*@
+                    <a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="AreaUpdate(@ViewBag.Edit_Area.id)">
+                        <i class="fa fa-edit"></i>  Update
+                    </a>
+                }
+            }
+
+            @{
+                if (Convert.ToString(Session["View"]) == "true")
+                {
+                    @*&nbsp;&nbsp;<input type="submit" value="Clear" onclick="location.reload();" class="btn btn-primary" />*@
+                    <a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="location.reload();">
+                        <i class="fa fa-refresh"></i> Clear
+                    </a>
+                }
+            }
+        </div>
+    </div>
+</div>
+<div>
+    @*<a href="~/Area/Index">  <input type="button" value="Back" class="btn btn-info" /></a>*@
+    @{
+        if (Convert.ToString(Session["View"]) == "true")
+        {
+            <a href="~/Area/Index" class="btn btn-info" style="border-radius: 20px;font-size: 14px;">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        }
+    }
+</div>
+

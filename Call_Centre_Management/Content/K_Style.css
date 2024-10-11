@@ -1,0 +1,241 @@
+﻿.auto
+{
+    margin: auto;
+    float: none;
+}
+
+.bgblack
+{
+    background-color: #000;
+}
+
+.white
+{
+    color: #fff;
+}
+
+.nopadleft
+{
+    padding-left: 0px;
+}
+
+.center
+{
+    text-align: center;
+}
+
+.nopadright
+{
+    padding-right: 0px;
+}
+
+.margintop11
+{
+    margin-top:11px;
+}
+
+.Maphead1
+{
+    padding-left: 5px;
+}
+
+/*Map*/
+.mapcurrentlocation
+{
+    height: 500px;
+    border-top: 2px solid #1693ea;
+    border-radius: 3px;
+    padding-top: 5px;
+}
+
+.mapcanvas
+{
+    height: 99.98%;
+}
+
+.nopadleftright
+{
+    padding-left:0px!important;
+    padding-right:0px!important;
+}
+
+.mainMapDiv
+{
+    padding-top: 0px!important;
+    padding-bottom: 0px!important;
+    padding-right: 0px!important;
+    padding-left: 0px!important;
+    border-top: 3px solid #1693ea;
+    box-shadow: 5px 5px 4px #888888;
+    border-radius: 3px;
+}
+
+.col-lg-offset-05
+{
+    margin-left: 1.33333333%;
+}
+
+.MapReportMainDiv
+{
+    border-top: 3px solid #1693ea;
+    box-shadow: 5px 5px 4px #888888;
+    border-radius: 3px;
+}
+
+.pad10
+{
+    padding-top: 10px!important;
+    padding-bottom: 10px!important;
+    padding-right: 10px!important;
+    padding-left: 10px!important;
+}
+
+.padtop10
+{
+    padding-top: 10px;
+}
+
+.padtop20
+{
+    padding-top: 20px;
+}
+
+.nopadtop
+{
+    padding-top: 0px;
+}
+
+.padbottom20
+{
+    padding-bottom: 20px;
+}
+
+ul.mapReportList
+{
+     list-style-type: none;
+     font-size: 14px;
+     padding-left: 10px;
+}
+
+ul.mapReportList > li
+{
+     padding: 5px;
+}
+
+ul.mapReportList > li:hover
+{
+    background-color: #CFCFCF;
+    transition: background-color ease 0.5s;
+}
+
+.xscrolltable
+{
+    overflow-x: scroll;
+}
+
+.xscrolltable > thead > tr > th
+{
+    color: #fff!important;
+}
+
+.xscrolltable > tbody > tr
+{
+    background-color: #FFFFFF;
+}
+
+.xscrolltable > tbody > tr:hover
+{
+    background-color: #8DBFE0;
+    transition: background-color ease 0.5s;
+}
+
+.xscrolltable > tbody > tr
+{
+    color: #000;
+}
+
+.bg-info1
+{
+    background-color: #5BC0DE!important;
+}
+
+.PersonNamelist
+{
+    overflow-y: scroll;
+    max-height:500px
+}
+
+.fontred
+{
+    color: #f00!important;
+}
+
+.mapPanel
+{
+    display: block;
+    width: 100%;
+    float: left;
+}
+
+.mapRecordPanel
+{
+    float: right;
+    width: 100%;
+    display: block;
+}
+
+.f15
+{
+    font-size: 15px;
+}
+
+#Detailslist > tr > td > a
+{
+    text-decoration: none;
+}
+
+
+/*Manager Usage Report Starts*/
+#reportdetails > tr > td
+{
+    text-align: center;
+}
+
+.linkcolor
+{
+    color: #1693EA;
+}
+
+.trBgColorGrey
+{
+    background-color: #C9C9C9;
+}
+
+/*Manager Usage Report Ends*/
+
+/*Reports.cshtml Starts*/
+
+
+#ListContents2-3Sales > a
+{
+    color: #1693EA;
+}
+
+#ListContents2-3Sales > a:hover
+{
+    background-color: #29A1F2;
+    color: #fff;
+    text-transform: uppercase;
+    -ms-transform: scale(1.004,1); /* IE 9 */
+    -webkit-transform: scale(1.004,1); /* Safari */
+    -o-transform: scale(1.004,1); /* opera */
+    -moz-transform: scale(1.004,1); /* Mozilla */
+    transform: scale(1.004,1);
+    box-shadow: 0px 0px 30px #1693EA;
+    transition: background-color linear 0.3s;
+}
+
+
+
+
+/*Reports.cshtml Ends*/

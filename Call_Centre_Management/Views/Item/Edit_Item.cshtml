@@ -1,0 +1,772 @@
+﻿@model Call_Centre_Management.Models.Item_Model
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Update Item</h2>
+
+
+<script type="text/javascript">
+    var count = 0;
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        getper();
+        $('#btnUpdateRawItem').hide();
+        //getdata();
+    });
+
+    $(window).on('load', function () {
+        getdata();
+    });
+
+    function ItemUpdate() {
+        var stulist = new Array();
+        var row = $("#tbl_rawItem").find("tr").length;
+        for (var i = 1; i < row; i++) {
+            stulist.push({
+                name: $("#tbl_rawItem").find("tr").eq(i).find('td:eq(0) input[type="text"]').val(),
+                qty: $("#tbl_rawItem").find("tr").eq(i).find('td:eq(1) input[type="text"]').val(),
+            })
+        }
+
+        var gst = $('#txt_gst').val().split("%");
+        var Values = {};
+        Values.item_name = $('#txt_Item_Name').val();
+        Values.category = $('#dd_category').val();
+        Values.sub_category = $('#txt_subCategory').val();
+        Values.UOM = $('#dd_UOM').val();
+        Values.UOM_value = $('#txt_UOM_Value').val();
+        Values.rate = $('#txt_Rate').val();
+        Values.schemeName = $('#txt_SchemeName').val();
+        Values.Scheme_values = $('#txt_Scheme_values').val();
+        Values.scheme_qty = $('#txt_Scheme_qty').val();
+        Values.gst = gst[0];
+        Values.subItemList = stulist;
+
+        if (Values.item_name.length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Item/Edit_Item",
+                method: "Post",
+                data: { item: Values },
+                success: function (Result) {
+                    if (Result > 0) {
+                        //$('#msg').html("<div class='alert alert-success alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Success!</strong> Record Sucessfully Saved.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                        alert(" Updated Successfully !!.");
+                        location.reload();
+                    }
+                    else if (Result < 0) {
+                        alert(" Name Is Already Exists Please Try Again.");
+                        //$('#msg').html("<div class='alert alert-danger alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Sorry!</strong> Record Is Already Exists Please Try Again.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                    }
+                    else {
+                        alert("Oops....Something Gone Wrong ! Please Try Again");
+                    }
+                }
+            });
+        }
+        else {
+            //   $('#msg').html("<span style='background-color:red;color:white'>Please Enter User Name.</span>");
+            alert("Please Enter Area Name.");
+        }
+    }
+
+    function checkUserName() {
+        if ($('#txt_userName').val().length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Employee/checkuserName",
+                method: "Post",
+                data: { username: $('#txt_userName').val() },
+                success: function (Result) {
+                    if (Result == true) {
+                        // $('#lbl_userMSG').val('User Name Alredy Exists');
+                        //   alert("User Name Alredy Exists");
+                        $("#txt_userName").val('');
+                        $("#lbl_userMSG").html("<span style='color:red'>Allready Exists</span>");
+                    }
+                    else {
+                        //   $('#lbl_userMSG').val('User Name Available');
+                        $("#lbl_userMSG").html("<span style='color:Green'>User Name Available</span>");
+                    }
+                }
+            })
+        }
+    }
+
+    function getper() {
+
+        var j = $('#txt_gst').val().split("%");
+        if (j.length > 1) {
+            $('#txt_gst').val(j[0] + '%');
+            alert(' GSt % Invalid');
+            return;
+        }
+        var i = $('#txt_gst').val();
+        if (i > 100) {
+            $('#txt_gst').val('');
+            alert(' GSt % should be between in 1-100');
+            return;
+        }
+        $('#txt_gst').val(i + '%');
+
+    }
+
+    function getdata() {
+
+        var category =@Html.Raw(Json.Encode(ViewBag.get_Edit_item.category));
+        var subcategory =@Html.Raw(Json.Encode(ViewBag.get_Edit_item.sub_category));
+        var UOM =@Html.Raw(Json.Encode(ViewBag.get_Edit_item.UOM));
+
+        var subItemList =@Html.Raw(Json.Encode(ViewBag.subItemList));
+
+        if (subItemList.length > 0)
+        {
+            for (var i = 0; i < subItemList.length; i++) {
+
+                if (i != 0) {
+                    //$('#AddRowRawItem').click();
+                    count++;
+                    $('#tbl_rawItem').append('<tr><td><input type="text" style="height:34px" id="txtRawItem' + count + '" class="txtbox ShapeFields" /></td><td><input type="text" id="txtRawItemQuantity' + count + '" class="form-control ShapeFields" /></td><td><a onclick="removerow(this)" style="cursor:pointer;">X</a></td></tr>');
+
+                    }
+
+                var txtRawItem = 'txtRawItem' + i;
+                var txtRawItemQuantity = 'txtRawItemQuantity' + i;
+
+                $('#' + txtRawItem).val(subItemList[i]["name"]);
+                $('#' + txtRawItemQuantity).val(subItemList[i]["qty"]);
+            }
+        }
+
+
+        //$.ajax({
+        //    url: "/Item/SearchAndEdit",
+        //    method: "Post",
+        //    data: { category: category, subcategory: subcategory, UOM: UOM},
+        //    success: function (Result) {
+
+        //    }
+        //});
+    }
+
+    function loadcategory(category) {
+        $.ajax({
+            url: "/Employee/checkuserName",
+            method: "Post",
+            data: { category: category},
+            success: function (Result) {
+                if (Result.length > 0) {
+                    $('#dd_category').empty();
+                    $('#dd_category').append('<option value="0">-- select --</option>');
+                    for (var i = 0; i < Result.length; i++) {
+
+                        $('#dd_category').append('<option value="' + Result[i]['category'] + '">' + Result[i]['category']+'</option>');
+                    }
+                  //  $("#lbl_userMSG").html("<span style='color:red'>Allready Exists</span>");
+                }
+
+            }
+        })
+    }
+
+    function loadSubcategory(subCategory) {
+        $.ajax({
+            url: "/Employee/checkuserName",
+            method: "Post",
+            data: { subCategory: subCategory },
+            success: function (Result) {
+                if (Result.length > 0) {
+                    $('#dd_category').empty();
+                    $('#dd_category').append('<option value="0">-- select --</option>');
+                    for (var i = 0; i < Result.length; i++) {
+
+                        $('#dd_category').append('<option value="' + Result[i]['category'] + '">' + Result[i]['category'] + '</option>');
+                    }
+                    //  $("#lbl_userMSG").html("<span style='color:red'>Allready Exists</span>");
+                }
+
+            }
+        })
+    }
+
+    function bindSubcategory() {
+        $.ajax({
+            url: "/Item/getSubcategory",
+            method: "Get",
+            data: { Category: $('#dd_category').val() },
+            success: function (Result) {
+                $('#txt_subCategory').empty();
+                $('#txt_subCategory').append('<option value="0">-- Select SubCategory --</option>')
+                if (Result.length > 0) {
+                    for (var i = 0; i < Result.length; i++) {
+                        $('#txt_subCategory').append('<option value="' + Result[i]['sub_category'] + '">' + Result[i]['sub_category'] + '</option>')
+                    }
+                }
+            }
+        });
+    }
+
+    function CreateRawItem() {
+        $.ajax({
+            url: "/Item/CreateRaw",
+            method: "Get",
+            data: { RawItem: $('#txtRawItem').val() },
+            success: function (Result) {
+                if (Result == '1') {
+                    //alert('Raw Item Created Succesfully')
+                    //MsgCreateRawItem
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Green">Raw Item Created Succesfully...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                    $('#txtRawItem').val('');
+                    $('#txtRawItem').focus();
+                }
+                else if (Result == '0') {
+                    alert('Raw Item Not Created ')
+                }
+                else if (Result == '-1') {
+                    //alert('Raw Item Already Exists')
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Red">Raw Item Already Exists ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                    $('#txtRawItem').val('');
+                    $('#txtRawItem').focus();
+
+                }
+                else {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Red">!! Oops Something Went Wrong ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                }
+            }
+        });
+    }
+
+    function AddRowRawItem() {
+        count++;
+        $('#tbl_rawItem').append('<tr><td><input type="text" style="height:34px" id="txtRawItem' + count + '" class="txtbox ShapeFields" /></td><td><input type="text" id="txtRawItemQuantity' + count + '" class="form-control ShapeFields" /></td><td><a onclick="removerow(this)" style="cursor:pointer;">X</a></td></tr>');
+    }
+
+    function removerow(getId) {
+        $(getId).closest("tr").remove()
+    }
+    //testing
+    $(document).on('keydown', '.txtbox', function () {
+        var id = this.id;
+        $('#' + id).autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/Item/fetcRawItem",
+                    type: "Get",
+                    dataType: "json",
+                    data: { RawItem: request.term },
+                    success: function (data) {
+                        if (data.length > 0) {
+                            response($.map(data, function (item) {
+                                return { label: item.item_name, value: item.item_name, data: item.id };
+                            }))
+                        }
+                        else {
+                            $('#' + id).val('');
+                        }
+                    }
+                })
+            }
+            //select: function (event, ui) {
+            //    var GetNumericvalue = id.substring(12, id.length);
+            //    if ($("#txt_itemqty" + GetNumericvalue).val() != "" && $("#" + id).val() != "") {
+            //        $('#addMore2').removeAttr("disabled");
+            //        $('#btn_nsert').removeAttr("disabled");
+
+            //    }
+            //    var SendItemName = ui.item.data;
+            //    GetItemRate(SendItemName, id);
+            //}
+        });
+    });
+    //End
+    //End
+
+    function loadRawItem() {
+
+        $.ajax({
+            url: '/Item/loadRawItems',
+            method: 'Get',
+            success: function (data) {
+
+                if (data.length > 0) {
+                    $('#tblRawItem').empty();
+                    //var head = '';
+                    //('#tblRawItem').append(head);
+                    for (var m = 0; m < data.length; m++) {
+
+
+                        if (data[m]["item_Active"] == 1) {
+
+                            var active = '<span style="color:green">Active</span>';
+                        }
+                        else {
+                            var active = '<span style="color:Red">DeActive</span>';
+                        }
+                        var details = '<tr><td>' + data[m]["ItemId"] + '</td>' +
+                            '<td>' + data[m]["item_name"] + '</td>' +
+                            '<td>' + data[m]["item_rate"] + '</td>' +
+                            '<td>' + active + '</td>' +
+                            '<td><input type = "submit" value="De/Active" class="btn btn-default" onclick = "DeActivate(' + data[m]["ItemId"] + ')" />' +
+                            '<input type="submit" value="Edit" class="btn btn-default" onclick="Edit(' + data[m]["ItemId"] + ')" /></td> ' +
+                            '</tr > ';
+
+                        $('#tblRawItem').append(details);
+                    }
+
+                }
+            }
+        });
+    }
+
+    function DeActivate(id) {
+        $.ajax({
+            url: '/item/ChangeSatusRawItem',
+            method: 'Get',
+            data: { id: id },
+            success: function (data) {
+                if (data == 1) {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Green">Raw Item Status Change Succesfully  ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                    $('#txtRawItem').val('');
+                    $('#txtRawItemCost').val('');
+                    loadRawItem();
+                }
+                else {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Red">Oops Something Went Wrong ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                }
+            }
+        });
+    }
+
+    function Edit(id) {
+        $.ajax({
+            url: '/item/EditRawItem',
+            method: 'Get',
+            data: { id: id },
+            success: function (data) {
+
+                $('#rawItemID').val(data.ItemId);
+                $('#txtRawItem').val(data.item_name);
+                $('#txtRawItemCost').val(data.item_rate);
+                $('#txtRawItem').focus();
+                $('#btnUpdateRawItem').show();
+                $('#btnCreateRawItem').hide();
+            }
+        });
+    }
+
+    function UpdateRawItem() {
+
+        $.ajax({
+            url: '/item/UpdateRawItem',
+            method: 'Get',
+            data: { id: $('#rawItemID').val(), RawItemName: $('#txtRawItem').val(), RawItemCost: $('#txtRawItemCost').val() },
+            success: function (data) {
+                if (data > 0) {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Green">Raw Item Updated Succesfully  ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                    $('#rawItemID').val('');
+                    $('#txtRawItem').val('');
+                    $('#txtRawItemCost').val('');
+                    $('#btnUpdateRawItem').hide();
+                    $('#btnCreateRawItem').show();
+                    loadRawItem();
+                }
+                else {
+                    $('#MsgCreateRawItem').fadeIn();
+                    $('#MsgCreateRawItem').html('<font color="Red">Oops Something Went Wrong  ...... !! </font>');
+                    $('#MsgCreateRawItem').fadeOut(5000);
+                }
+            }
+        });
+    }
+
+</script>
+
+<span id="rawItemID"></span>
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+<script type="text/javascript"></script>
+<div class="form-horizontal">
+    <hr />
+    <span id="msg"></span>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Item Name</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_Item_Name" value="@ViewBag.get_Edit_item.item_name" placeholder="Enter Item Name" class="form-control ShapeFields" />
+        </div>
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-2">
+            <label>Category</label>
+        </div>
+
+
+        <div class="col-md-3">
+            <select id="dd_category" class="form-control ShapeFields" onchange="bindSubcategory()">
+                <option value='0'>--Select Category--</option>
+                @{
+                    foreach (var category in ViewBag.categoryList)
+                    {
+                        if (category.categoryName == ViewBag.get_Edit_item.category.ToString())
+                        {
+                            <option value="@category.categoryName" selected="selected">@category.categoryName</option>
+
+                        }
+                        else
+                        {
+                            <option value="@category.categoryName">@category.categoryName</option>
+
+                        }
+                    }
+                }
+            </select>
+
+
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Sub Category</label>
+        </div>
+
+        <div class="col-md-3">
+            @*<input type="text" id="txt_subCategory" value="@ViewBag.get_Edit_item.sub_category" placeholder="Enter Sub Category" class="form-control ShapeFields" />*@
+            <select id="txt_subCategory" class="form-control ShapeFields">
+                <option value=''>--Select Sub Category--</option>
+                @{
+                    foreach (var Subcategory in ViewBag.subcategoryList)
+                    {
+                        if (Subcategory.subcategoryName == ViewBag.get_Edit_item.sub_category.ToString())
+                        {
+                            <option value="@Subcategory.subcategoryName" selected="selected">@Subcategory.subcategoryName</option>
+                        }
+
+                        else
+                        {
+                            <option value="@Subcategory.subcategoryName"> @Subcategory.subcategoryName </option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-2">
+            <label>UOM</label>
+        </div>
+
+        <div class="col-md-3">
+            <select id="dd_UOM" class="form-control ShapeFields">
+                <option value='0'>--Select Uom--</option>
+                @{
+                    foreach (var Uoms in ViewBag.UomList)
+                    {
+                        if (Uoms.UomName == ViewBag.get_Edit_item.UOM.ToString())
+                        {
+                            <option value="@Uoms.UomName" selected="selected">@Uoms.UomName</option>
+                        }
+                        else
+                        {
+                            <option value="@Uoms.UomName">@Uoms.UomName</option>
+                        }
+                    }
+                }
+            </select>
+
+            @*<select id="dd_UOM" class="form-control ShapeFields">
+                    @{ if (ViewBag.get_Edit_item.UOM == "Liters")
+                        {
+                            <option value="Liters" selected="selected">Liters</option>
+                            <option value="Box">Box</option>
+                            <option value="Dozen">Dozen</option>
+                            <option value="Gram">Gram</option>
+                        }
+                        else if (ViewBag.get_Edit_item.UOM == "Box")
+                        {
+                            <option value="Liters">Liters</option>
+                            <option value="Box" selected="selected">Box</option>
+                            <option value="Dozen">Dozen</option>
+                            <option value="Gram">Gram</option>
+                        }
+                        else if (ViewBag.get_Edit_item.UOM == "Dozen")
+                        {
+                            <option value="Liters">Liters</option>
+                            <option value="Box">Box</option>
+                            <option value="Dozen" selected="selected">Dozen</option>
+                            <option value="Gram">Gram</option>
+                        }
+                        else if (ViewBag.get_Edit_item.UOM == "Gram")
+                        {
+                            <option value="Liters">Liters</option>
+                            <option value="Box">Box</option>
+                            <option value="Dozen">Dozen</option>
+                            <option value="Gram" selected="selected">Gram</option>
+                        }
+                        else
+                        {
+                            <option value="0" selected="selected">--- Select UOM ---</option>
+                            <option value="Liters">Liters</option>
+                            <option value="Box">Box</option>
+                            <option value="Dozen">Dozen</option>
+                            <option value="Gram">Gram</option>
+                        }
+                    }
+                </select>*@
+
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>UOM Value</label>
+
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" value="@ViewBag.get_Edit_item.UOM_value" id="txt_UOM_Value" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" placeholder="Enter UOM Values" class="form-control ShapeFields" />
+            @*<input type="text" id="txt_UOM_Value" values="@ViewBag.get_Edit_item.UOM_value" placeholder="Enter UOM Values" class="form-control" />*@
+        </div>
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-2">
+            <label>Rate</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="number" min="0" step="any" value="@ViewBag.get_Edit_item.rate" id="txt_Rate" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" placeholder="Enter Rate" class="form-control ShapeFields" />
+            @*<input type="text" id="txt_Rate" values="@ViewBag.get_Edit_item.rate" placeholder="Enter Rate" class="form-control" />*@
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Scheme Name</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" value="@ViewBag.get_Edit_item.schemeName" id="txt_SchemeName" placeholder="Enter Scheme Name" class="form-control ShapeFields" />
+            @*<input type="text" id="txt_Scheme_values" values="@ViewBag.get_Edit_item.Scheme_values" placeholder="Enter Scheme values" class="form-control" />*@
+        </div>
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-2">
+            <label>Scheme values</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="number" min="0" step="any" value="@ViewBag.get_Edit_item.Scheme_values" id="txt_Scheme_values" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" placeholder="Enter Scheme Values" class="form-control ShapeFields" />
+            @*<input type="text" id="txt_Scheme_values" values="@ViewBag.get_Edit_item.Scheme_values" placeholder="Enter Scheme values" class="form-control" />*@
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Scheme Quantity</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" value="@ViewBag.get_Edit_item.scheme_qty" id="txt_Scheme_qty" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" placeholder="Enter Scheme Quantity" class="form-control ShapeFields" />
+            @*<input type="text" id="txt_Scheme_qty" values="@ViewBag.get_Edit_item.scheme_qty" placeholder="Enter Scheme Quantity" class="form-control" />*@
+        </div>
+        @*</div>
+
+            <div class="form-group">*@
+        <div class="control-label col-md-2">
+            <label>GST%</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" value="@ViewBag.get_Edit_item.gst" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" id="txt_gst" onchange="getper()" placeholder="Enter GST%" class="form-control ShapeFields" />
+            @*<input type="text" id="txt_gst" values='@ViewBag.get_Edit_item.gst' placeholder="Enter GST%" class="form-control" />*@
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Raw Items</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_rawItem" placeholder="Select Raw Items" onclick="$('#popRawItem').modal('show');" onfocus="$('#popRawItem').modal('show');" style="cursor:pointer" class="form-control ShapeFields" readonly />
+
+        </div>
+        @*</div>
+            <div class="form-group">*@
+        @*<div class="control-label col-md-2">
+                <label>Item Image</label>
+            </div>*@
+
+        @*<div class="col-md-3">
+                <input type="file" class="form-control" id="txtFileUpload" onchange="loadFile(event)" />
+                <img id="img1" style="height:100px;width:100px" />
+            </div>*@
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-3 col-md-3">
+
+            @{if (Convert.ToString(Session["Edit"]) == "true")
+                {
+                    <a class="btn btn-primary ButtonShape" onclick="ItemUpdate(@ViewBag.get_Edit_item.id)">
+                        <i class="fa fa-edit"></i>  Update
+                    </a>
+                }
+            }
+
+            @{
+                if (Convert.ToString(Session["View"]) == "true")
+                {
+                    <a class="btn btn-primary ButtonShape" onclick="location.reload();">
+                        <i class="fa fa-refresh"></i> Clear
+                    </a>
+                    @*<input type="submit" value="Update" onclick="ItemUpdate(@ViewBag.get_Edit_item.id)" class="btn btn-primary" /> &nbsp;&nbsp;
+                        <input type="submit" value="Clear" onclick="location.reload();" class="btn btn-primary" />*@
+                }
+            }
+        </div>
+    </div>
+</div>
+<div>
+    @{
+        if (Convert.ToString(Session["View"]) == "true")
+        {
+            @*<a href="~/Item/Index">  <input type="button" value="Back" class="btn btn-info" /></a>*@
+            <a href="~/Item/Index" class="btn btn-info ButtonShape">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        }
+    }
+</div>
+<div class="modal fade" id="popRawItem" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">Add Item Details</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body ui-front">
+                <div class="col-md-12">
+                    <div class="col-md-offset-6 col-md-6">
+                        <button type="button" class="btn btn-primary ButtonShape" onclick="$('#createpopRawItem').modal('show'); loadRawItem();">Create Raw Item</button>
+                        <br />
+                    </div>
+                    <br />
+                </div>
+                <br />
+                <div class="table-sm table">
+                    <label id="UOMmsg"></label>
+                    <div class="col-md-12">
+                        <table id="tbl_rawItem" class="table-responsive">
+                            <tr>
+                                <th><h5> Raw Item</h5></th>
+                                <th><h5>Quantity</h5> </th>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="txtRawItem0" style="height:34px" class="txtbox ShapeFields" /></td>
+                                <td><input type="text" id="txtRawItemQuantity0" class="form-control ShapeFields" /></td>
+                            </tr>
+                        </table>
+                        <br />
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary ButtonShape" onclick="AddRowRawItem()">Add Row</button>
+                    <button type="button" class="btn btn-secondary ButtonShape" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createpopRawItem" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">Create Raw Item</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <span id="MsgCreateRawItem"></span>
+            </div>
+            <div class="modal-body">
+                <div class="table-sm table">
+                    <label id="UOMmsg"></label>
+                    <div class="col-md-12">
+                        <div class="col-lg-offset-2 col-md-4"><h4> Raw Item</h4></div>
+                        <div class="col-md-6">
+                            <input type="text" id="txtRawItem" class="form-control ShapeFields" />
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="col-lg-offset-2 col-md-4"><h4> Raw Item Cost</h4></div>
+                        <div class="col-md-6">
+                            <input type="text" id="txtRawItemCost" class="form-control ShapeFields" />
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-offset-6 col-md-6">
+                            <button type="button" id="btnCreateRawItem" class="btn btn-primary ButtonShape" onclick="CreateRawItem()">Create</button>
+                            <button type="button" id="btnUpdateRawItem" class="btn btn-primary ButtonShape" onclick="UpdateRawItem()">Update</button>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary ButtonShape" data-dismiss="modal">Close</button>
+                </div>
+                <div class="panel-body table-responsive Boxdesign">
+
+                    <div class="col-lg-12">
+                        <table class="table">
+                            <thead>
+                                <tr class="info" style="cursor:pointer;">
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Cost</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="tblRawItem"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

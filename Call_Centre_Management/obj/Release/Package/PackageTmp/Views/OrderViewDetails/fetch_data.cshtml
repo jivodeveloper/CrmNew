@@ -1,0 +1,884 @@
+﻿@{
+    ViewBag.Title = "Order Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+}
+
+
+@*Choosen Link*@
+@*<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.4.2/chosen.jquery.js"></script>*@
+@*<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.4.2/chosen.css">*@
+@*End*@
+
+<style type="text/css">
+    table th, table td {
+        padding: 10px; /* Apply cell padding */
+        text-align:justify;
+    }
+</style>
+<script type="text/javascript">
+
+    var CheckAll = [], verifyCheckbox;
+
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        BindAllFilltersFirstTime();
+    });
+
+    function BindAllFilltersFirstTime() {
+
+        var StateList = @Html.Raw(Json.Encode(ViewBag.AllStateList));
+        var ZoneList=@Html.Raw(Json.Encode(ViewBag.AllZoneList));
+        var AreaList=@Html.Raw(Json.Encode(ViewBag.AllAreaList));
+        var OrderDateList=@Html.Raw(Json.Encode(ViewBag.AllOrderDateList));
+        var SKUList=@Html.Raw(Json.Encode(ViewBag.AllSkUList));
+        var GetOrderList=@Html.Raw(Json.Encode(ViewBag.GetOrderItemList));
+        var DeliveryBoyDetails=@Html.Raw(Json.Encode(ViewBag.DeliveryBoyDetails));
+
+
+        $.each(StateList, function (index, value) {
+            var StateOption = $('<option>');
+            StateOption.attr('value', value.Id).text(value.StateName);
+            $('#StateList').append(StateOption);
+
+        });
+
+
+        $.each(StateList, function (index, value) {
+            var StateOption = $('<option>');
+            StateOption.attr('value', value.Id).text(value.StateName);
+            $('#pivotstate').append(StateOption);
+        });
+
+
+      //  $("#StateList > [value=" + temp.Id + "]").attr("selected", "true");
+        //$('select').selectpicker();
+
+        $.each(ZoneList, function (index, value) {
+            var ZoneOption = $('<option>');
+            ZoneOption.attr('value', value.Id).text(value.ZoneName);
+            $('#ZoneList').append(ZoneOption);
+        });
+
+        $.each(AreaList, function (index, value) {
+            var AreaOption = $('<option>');
+            AreaOption.attr('value', value.id).text(value.AreaName);
+            $('#AreaList').append(AreaOption);
+        });
+
+        $.each(OrderDateList, function (index, value) {
+            var OrderDateOption = $('<option>');
+            OrderDateOption.attr('value', value.InsertedDate).text(value.InsertedDate);
+            $('#OrderDateList').append(OrderDateOption);
+        });
+
+        $.each(SKUList, function (index, value) {
+            var SKUListOption = $('<option>');
+            SKUListOption.attr('value', value.id).text(value.item_name);
+            $('#SKUList').append(SKUListOption);
+        });
+
+
+        $.each(DeliveryBoyDetails, function (index, value) {
+            var DeliveryBoytOption = $('<option>');
+            DeliveryBoytOption.attr('value', value.id).text(value.fullName);
+            $('#AssignDeliveryBoy').append(DeliveryBoytOption);
+        });
+
+
+        $("#StateList").chosen();
+        $("#ZoneList").chosen();
+        $("#AreaList").chosen();
+        $("#OrderDateList").chosen();
+        $("#SKUList").chosen();
+
+        $("#TotalpandingRecord").html("<font class='text-primary'>" + GetOrderList.length + "</font>");
+        $.each(GetOrderList, function (i, value) {
+
+            $("#ShowOrders").append(
+                '<tr>' +
+                '<td><input type="checkbox" id="CheckValue' + i + '" value="' + value.id+'"/></td>' +
+                '<td>' + value.id + '</td>' +
+                '<td>' + value.orderItemId + '</td>' +
+                '<td>' + value.cust_name + '</td>' +
+                '<td>' + value.cust_mobile + '</td>' +
+                '<td>' + value.Address + '</td>' +
+                '<td>' + value.AreaName + '</td>' +
+                '<td>' + value.zoneName + '</td>' +
+                '<td>' + value.item_name + '</td>' +
+                '<td>' + value.total_qty + '</td>' +
+                '<td>' + value.Total_Price + '</td>' +
+                '<td>' + value.Payment_mode + '</td>' +
+                '<td>' + value.Remark+'</td>' +
+                '<td>' + value.InsertedDate + '</td>' +
+
+                //'<td>' + value.stateName + '</td>' +
+
+
+                //'<td>' + value.callerName + '</td>' +
+                //'<td>' + value.Source + '</td>' +
+                //'<td>' + value.item_Active + '</td>' +
+                //'<td>' + value.InsertedDate + '</td>' +
+                '</tr>');
+        });
+        //SearchingwithPagination("#ShowOrder");
+
+        SelectSepcificCheckBox();
+
+        var empId = localStorage.getItem("id");
+
+        if (empId === null || empId === "undefined" || empId === undefined) {
+            empId = 0;
+        }
+        else
+        {
+
+            $('#pivotstate').val(empId)
+           // displaychartData();
+        }
+
+    }
+
+
+    function SelectSepcificCheckBox()
+    {
+        var $checkboxes = $('#ShowOrders td input[type="checkbox"]');
+        $checkboxes.change(function () {
+            var countCheckedCheckboxes = $checkboxes.filter(':checked').length;
+            $("#counts").html(countCheckedCheckboxes);
+            //var countnotCheckedCheckboxes = $checkboxes.filter(':not(:checked)').length;
+
+            if ($('#TotalpandingRecord').text() == countCheckedCheckboxes) {
+                $("#AllCheck").prop("checked", true);
+            }
+            else {
+                $("#AllCheck").prop("checked", false);
+            }
+        });
+    }
+
+    function BindStateWithZone(sel)
+    {
+       var opts = [],
+        opt;
+        var len = sel.options.length;
+        for (var i = 0; i < len; i++)
+        {
+            opt = sel.options[i];
+            if (opt.selected) {
+                opts.push(opt.value);
+            }
+        }
+        $.ajax({
+            url: "/OrderViewDetails/BindStateWithZone",
+            method: "post",
+            data: { StateId: opts},
+            success: function (Result) {
+                $('#ZoneList').empty();
+                $.each(Result, function (index, value) {
+                    var ZoneOption = $('<option>');
+                    ZoneOption.attr('value', value.Id).text(value.ZoneName);
+                    $('#ZoneList').append(ZoneOption);
+                    $('#ZoneList').val(ZoneOption).change()
+                    $('#ZoneList').trigger("chosen:updated");
+                });
+            }
+        });
+    }
+
+    function BindZoneWithArea(Ar)
+    {
+        var optss = [],
+            optt;
+        var len2 = Ar.options.length;
+        for (var i = 0; i < len2; i++) {
+            optt = Ar.options[i];
+            if (optt.selected) {
+                optss.push(optt.value);
+            }
+        }
+        $.ajax({
+            url: "/OrderViewDetails/BindZoneWithArea",
+            method: "post",
+            data: { ZoneId: optss },
+            success: function (Result) {
+                optss = [];
+                $('#AreaList').empty();
+                $.each(Result.AreaModalList, function (index, value) {
+                    var AreaOption = $('<option>');
+                    AreaOption.attr('value', value.AreaId).text(value.AreaName);
+                    $('#AreaList').append(AreaOption);
+                    $('#AreaList').trigger("chosen:updated");
+                });
+
+                $('#OrderDateList').empty();
+                $.each(Result.orderDateList, function (index, value) {
+                    var DateOption = $('<option>');
+                    DateOption.attr('value',value).text(value);
+                    $('#OrderDateList').append(DateOption);
+                    $('#OrderDateList').trigger("chosen:updated");
+                });
+
+            }
+        });
+    }
+    function AllSelectCheckbox() {
+        var CheckedAll = $("#AllCheck").is(":checked");
+        $("input[type=checkbox]").each(function (index, value) {
+            if (CheckedAll == true) {
+                $("#CheckValue" + index).prop("checked", true);
+                $("#counts").html($('#ShowOrders td input[type="checkbox"]').length);
+            }
+            else {
+                $("#counts").html(0);
+                $("#CheckValue" + index).removeAttr("checked");
+            }
+        });
+    }
+    
+
+    function BindAreaWithDates(dates)
+    {
+        var Areas = [],
+            AreaId;
+        var len3 = dates.options.length;
+        for (var i = 0; i < len3; i++) {
+            AreaId = dates.options[i];
+            if (AreaId.selected) {
+                Areas.push(AreaId.value);
+            }
+        }
+        $.ajax({
+            url: "/OrderViewDetails/BindAreawithDates",
+            method: "post",
+            data: { GetAreaId: Areas },
+            success: function (Result) {
+                Areas = [];
+                $('#OrderDateList').empty();
+                $.each(Result, function (index, value) {
+                    var DateOption = $('<option>');
+                     //DateOption.attr('value', value.InsertedDate).text(value.InsertedDate);
+                    DateOption.attr('value',value).text(value);
+                    $('#OrderDateList').append(DateOption);
+                    $('#OrderDateList').trigger("chosen:updated");
+                });
+
+            }
+        });
+
+    }
+
+    function BindDatewithItem(Item)
+    {
+        var Items = [],ItemId;
+        var len4 = Item.options.length;
+        for (var i = 0; i < len4; i++) {
+            ItemId = Item.options[i];
+            if (ItemId.selected) {
+                Items.push(ItemId.value);
+            }
+        }
+
+        $.ajax({
+            url: "/OrderViewDetails/BindDatewithItem",
+            method: "post",
+            data: { GetDates: Items },
+            success: function (Result) {
+                Areas = [];
+                $('#SKUList').empty();
+                $.each(Result, function (index, value) {
+                    var SkuOption = $('<option>');
+                    SkuOption.attr('value', value.id).text(value.item_name);
+                    $('#SKUList').append(SkuOption);
+                    $('#SKUList').trigger("chosen:updated");
+                });
+
+            }
+        });
+    }
+
+    function FinalFillter()
+    {
+        $("#AllCheck").attr("checked", false);
+       // CheckAll = [];
+       var State = [];
+       var Zone = [];
+       var Area = [];
+       var orderDateList = [];
+       var SKUList = [];
+
+        $.each($("#StateList option"), function () {
+
+            var GetselectedState = $("#StateList option:selected").map(function () {
+                return $(this).val();
+            }).get();
+
+            if (GetselectedState == "") {
+                State.push($(this).val());
+            }
+
+            else {
+                State = [];
+                $.each(GetselectedState, function (i, value) {
+                    State.push(value);
+                });
+            }
+        });
+
+        $.each($("#ZoneList option"), function () {
+
+            var GetselectedZone = $("#ZoneList option:selected").map(function () {
+                return $(this).val();
+            }).get();
+
+            if (GetselectedZone == "") {
+                Zone.push($(this).val());
+            }
+
+            else {
+                Zone = [];
+                $.each(GetselectedZone, function (i, value) {
+                    Zone.push(value);
+                });
+            }
+        });
+
+        $.each($("#AreaList option"), function () {
+
+            var GetselectedArea = $("#AreaList option:selected").map(function () {
+                return $(this).val();
+            }).get();
+
+            if (GetselectedArea == "") {
+                Area.push($(this).val());
+            }
+
+            else
+            {
+                Area = [];
+                $.each(GetselectedArea, function (i, value) {
+                    Area.push(value);
+                });
+
+            }
+        });
+
+        $.each($("#OrderDateList option"), function () {
+
+            var GetselectedOrderDate = $("#OrderDateList option:selected").map(function () {
+                return $(this).val();
+            }).get();
+
+            if (GetselectedOrderDate == "") {
+                orderDateList.push($(this).val());
+            }
+
+            else {
+                orderDateList = [];
+                $.each(GetselectedOrderDate, function (i, value) {
+                    orderDateList.push(value);
+                });
+            }
+        });
+
+
+
+        $.each($("#SKUList option"), function () {
+
+            var GetselectedSKU = $("#SKUList option:selected").map(function () {
+                return $(this).val();
+            }).get();
+
+            //if (GetselectedSKU == "") {
+              //  SKUList.push($(this).val());
+            //}
+
+            //else {
+               // SKUList = [];
+            $.each(GetselectedSKU, function (i, value) {
+                    SKUList.push(value);
+                });
+            //}
+        });
+
+
+         //$.each($("#StateList option:selected"), function () {
+        //State.push($(this).val());
+        //});
+
+        //$.each($("#ZoneList option:selected"), function () {
+        //    Zone.push($(this).val());
+        //});
+
+        //$.each($("#AreaList option:selected"), function () {
+        //    Area.push($(this).val());
+        //});
+
+        //$.each($("#OrderDateList option:selected"), function () {
+        //    orderDateList.push($(this).val());
+        //});
+
+        //$.each($("#SKUList option:selected"), function () {
+        //    SKUList.push($(this).val());
+        //});
+
+        var GetRecords = { StateId: State, ZoneId: Zone, AreaId: Area, InsertedDate: orderDateList, ItemId: SKUList };
+        $('#loading').show();
+       $.ajax({
+            url: "/OrderViewDetails/FinalFillters",
+            method: "post",
+        data: { fillter: GetRecords },
+           success: function (Result)
+           {
+               $('#loading').fadeOut();
+               $("#ShowOrders").empty();
+               $("#TotalpandingRecord").html("<font class='text-primary'>" + Result.length+"</font>");
+               $.each(Result, function (i, value)
+               {
+                  $("#ShowOrders").append(
+                '<tr>' +
+                '<td><input type="checkbox" id="CheckValue' + i + '" value="' + value.id + '"/></td>' +
+                      '<td>' + value.id + '</td>' +
+                      '<td>' + value.orderItemId + '</td>' +
+                       '<td>' + value.cust_name + '</td>' +
+                       '<td>' + value.cust_mobile + '</td>' +
+                       '<td>' + value.Address + '</td>' +
+                       '<td>' + value.AreaName + '</td>' +
+                       '<td>' + value.zoneName + '</td>' +
+                       '<td>' + value.item_name + '</td>' +
+                       '<td>' + value.total_qty + '</td>' +
+                       '<td>' + value.Total_Price + '</td>' +
+                       '<td>' + value.Payment_mode + '</td>' +
+                       '<td>' + value.Remark + '</td>' +
+                      '<td>' + value.InsertedDate + '</td>' +
+
+                '</tr>');
+               });
+               $("#AllCheck").prop("checked", false);
+               $("#counts").html(0);
+               SelectSepcificCheckBox();
+           }
+        });
+    }
+
+    function AssignOrder()
+    {
+        var CheckValues = [];
+
+        $("input[type=checkbox]").each(function (index, value) {
+            var GetCheckedvalue = $("#CheckValue" + index).is(":checked");
+            if (GetCheckedvalue == true) {
+                CheckValues.push($("#CheckValue" + index).val());
+                //var s = $('#ShowOrders :input[type="checkbox"]:checked').length;
+                //console.log(s);
+            }
+        });
+
+        if (CheckValues.length != 0) {
+            if ($("#AssignDeliveryBoy").val() != 0) {
+                $.ajax({
+                    url: "/OrderViewDetails/AssignOrder",
+                    method: "post",
+                    data: { OrderId: CheckValues, DeliveryBoyId: $("#AssignDeliveryBoy").val()},
+                    success: function (Result) {
+
+                        if (Result == true) { alert("Assign Order Sucessfully"); location.reload(); }
+                        else { alert("Sorry Not Assign"); }
+                        $("#AllCheck").prop("checked", false);
+                        $("#counts").html(0);
+                        SelectSepcificCheckBox();
+                    }
+                });
+            }
+            else {
+                alert("Please Select DeliveryBoy Name");
+            }
+        }
+        else
+        {
+            alert("Please Check Checkbox");
+        }
+
+    }
+
+    function displaychart() {
+        if ($('#pivotstate').val() == 0) {
+            $("#pivottable").hide();
+        }
+        else {
+            localStorage.setItem("id", $('#pivotstate').val());
+            var GetCurrentStateId = localStorage.getItem("id");
+            if (GetCurrentStateId == 0) {
+                $.ajax({
+                    url: "/OrderViewDetails/DispalypivotTable",
+                    method: "Get",
+                    data: { StateId: GetCurrentStateId },
+                    success: function (Result) {
+
+                        var table = $('#pivottable');
+                        table.empty();
+                        var tr = 'N';
+                        for (var i = 0; i < Result.length; i++) {
+
+                            var header = '<th>' + Result[i]["zoneName"] + '</th>'
+
+                            if (tr == 'N') {
+                                tr = '' + header;
+                            }
+                            else {
+                                tr = tr + '' + header;
+                            }
+                        }
+
+                        table.append('<thead>' + '<tr>' + tr + '</tr >' + '</thead>');
+                       // displaychartData(GetCurrentStateId)
+                    }
+
+                });
+            }
+            else { alert("Something wrong"); }
+        }
+    }
+
+
+    function displaychartData() {
+        if ($("#pivotstate").val() == 0) {
+            $('#loading').show();
+            $("#pivottable").hide();
+            $('#loading').fadeOut();
+            //localStorage.setItem("id", $('#pivotstate').val());
+        }
+
+        else {
+
+            //localStorage.setItem("id", $('#pivotstate').val());
+            //var GetCurrentStateId = localStorage.getItem("id");
+            var GetCurrentStateId = $('#pivotstate').val();
+
+            if (GetCurrentStateId != 0) {
+                $('#loading').show();
+
+                $("#pivottable").show();
+                $.ajax({
+                    //url: "/OrderViewDetails/DispalypivotTableData",
+                    url: "/OrderViewDetails/Show",
+                    method: "Get",
+                    data: { StateId: GetCurrentStateId },
+                    //success: function (Result) {
+                    success: function (data) {
+                        $('#loading').fadeOut();
+
+                        //$.getJSON("../TEST/json1.json", function (data) {
+                            var col = [];
+                            for (var i = 0; i < data.length; i++) {
+                                for (var key in data[i]) {
+                                    if (col.indexOf(key) === -1) {
+                                        col.push(key);
+                                    }
+                                }
+                            }
+
+                            // CREATE DYNAMIC TABLE.
+                            //var table = document.createElement("table") ;
+                            var thead = 'one'
+                            for (var i = 0; i < col.length; i++) {
+
+                                if (thead == 'one') {
+                                    thead = '<th>' + col[i] + '</th>';
+                                }
+                                else {
+                                    thead += '<th>' + col[i] + '</th>'
+                                }
+                            }
+                            $('#pivottable').empty();
+                            $('#pivottable').append('<thead><tr><h1>' + thead + '</h1></tr></thead >');
+
+                            // ADD JSON DATA TO THE TABLE AS ROWS.
+                            for (var i = 0; i < data.length; i++) {
+
+                                //tr = table.insertRow(-1);
+                                var trow = 'row'
+                                for (var j = 0; j < col.length; j++) {
+                                    //var tabCell = tr.insertCell(-1);
+                                    //tabCell.innerHTML = data[i][col[j]];
+                                    if (trow == 'row') {
+                                        trow = '<td>' + data[i][col[j]] + '</td>'
+                                    }
+                                    else {
+                                        trow = trow + '<td>' + data[i][col[j]] + '</td>'
+                                    }
+                                }
+                                $('#pivottable').append('<tr>' + trow + '</tr>')
+                            }
+                            // $("#test th td").addclass("padding:25px;");
+
+
+                        //});
+                        // $('#test td th').css("style='width:70%';cellspacing='30px'");
+
+                    }
+                });
+            }
+            else {
+                $("#pivottable").hide();
+                alert("Something wrong");
+            }
+        }
+    }
+</script>
+
+
+@*@using System.Data
+@model DataTable*@
+
+@*<table cellpadding="0" cellspacing="0">
+        <tr>
+            @foreach (DataColumn col in Model.Columns)
+            {
+                <th>@col.ColumnName</th>
+            }
+
+        </tr>
+        @foreach (DataRow row in Model.Rows)
+        {
+            <tr>
+                @foreach (DataColumn col in Model.Columns)
+                {
+                    <td>@row[col.ColumnName]</td>
+                }
+            </tr>
+        }
+    </table>*@
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <label>Select State</label>&nbsp;&nbsp;
+        <select class="panel-title ShapeFields" id="pivotstate" onchange="displaychartData()">
+            <option value="0">--Select State--</option>
+        </select>
+    </div>
+            <div class="table-responsive">
+                <table id="pivottable" class="table"></table>
+            </div>
+</div>
+
+
+@*<table id="tabbb" class="table-responsive"></table>*@
+
+@*<table id="showData" class="table-responsive"></table>
+
+    <table id="test" class="table-responsive"></table>*@
+
+<br />
+<div id="m"></div>
+<div class="panel-info">
+    <div class="panel-heading">
+        <a data-toggle="collapse" data-target="#demo" style="color:black;cursor:pointer;"><h4><i class="fa fa-search"></i> Searching Area</h4></a>
+        <div class="panel-title collapse in" id="demo">
+            <div class="row">
+                <div class="col-lg-12">
+
+                    <div class="form-group">
+                        <div class="col-lg-2">
+                            <label>State </label>
+                            <select class="chzn-select" multiple style="width:200px;" id="StateList" data-placeholder="Select State List..." onchange="BindStateWithZone(this)">
+                                @*<option>Mustard</option>
+                                    <option>Ketchup</option>
+                                    <option>Relish</option>*@
+                            </select>
+                        </div>
+
+                        <div class="col-sm-1"></div>
+
+                        <div class="col-lg-2">
+                            <label>Zone</label>
+                            <select class="chzn-select" multiple style="width:200px;" title="Zone" id="ZoneList" data-placeholder="Select Zone List..." onchange="BindZoneWithArea(this)">
+                                @*<option>Mustard</option>
+                                    <option>Ketchup</option>
+                                    <option>Relish</option>*@
+                            </select>
+                        </div>
+
+                        <div class="col-sm-1"></div>
+
+                        <div class="col-lg-2">
+                            <label>Area</label>
+                            <select class="chzn-select" multiple style="width:200px;" title="Area" id="AreaList" data-placeholder="Select Area List..." onchange="BindAreaWithDates(this)">
+                                @*<option>Mustard</option>
+                                    <option>Ketchup</option>
+                                    <option>Relish</option>*@
+                            </select>
+                        </div>
+
+                        <div class="col-sm-1"></div>
+
+                        <div class="col-lg-2">
+                            <label>Order Date </label>
+                            <select class="chzn-select" multiple style="width:200px;" title="Order Date" id="OrderDateList" data-placeholder="Select Order Date List..." onchange="BindDatewithItem(this)">
+                                @*<option>Mustard</option>
+                                    <option>Ketchup</option>
+                                    <option>Relish</option>*@
+                            </select>
+                        </div>
+
+                        <div class="col-sm-1"></div>
+
+                    </div>
+                </div>
+            </div>
+
+            <br />
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        <div class="col-lg-1">
+                            <label>Item Name</label>
+                            <select class="chzn-select" multiple style="width:200px;" title="S.K.U" id="SKUList" data-placeholder="Select Item Name List...">
+                                @*<option>Mustard</option>
+                <option>Ketchup</option>
+                <option>Relish</option>*@
+                            </select>
+                        </div>
+                        @*<div class="col-sm-1"></div>
+        <div class="col-lg-2">
+            <label>Status</label>
+            <br />
+            <select class="bg-info text-white" style="width:220px;height: 32px;">
+                <option value="">--Select Status--</option>
+                <option value="0">Panding</option>
+                <option value="1">Delivery</option>
+                <option value="-1">Cancel</option>
+            </select>
+        </div>*@
+
+                        @{
+                            if (Convert.ToString(Session["View"]) == "true")
+                            {
+                                <div class="col-lg-3 col-md-offset-1">
+                                    &nbsp;&nbsp;
+                                    @*<a class="btn btn-primary ShapeFields" style="padding: 0px 12px;margin-top: 32px;" onclick="FinalFillter()">
+                        <i class="fa fa-search"></i> Search
+                    </a>*@
+
+                                    <button class="btn btn-primary ButtonShape" style="padding: 0px 12px;margin-top: 32px;" onclick="FinalFillter()"><i class="fa fa-search"></i> Search</button>
+
+                                    @*<a class="btn btn-primary" style="border-radius: 20px;padding: 0px 12px;font-size: 14px;margin-top: 32px;" onclick="location.reload()">
+                        <i class="fa fa-refresh"></i> Clear
+                    </a>*@
+
+                                    <button class="btn btn-primary ButtonShape" style="padding: 0px 12px;margin-top: 32px;" onclick="location.reload()"><i class="fa fa-refresh"></i> Clear</button>
+                                </div>
+                            }
+                        }
+
+                        <div class="col-lg-2"></div>
+                        @{if (Convert.ToString(Session["Insert"]) == "true")
+                            {
+                                <div class="col-lg-2">
+                                    <label>Assign Orders</label>
+                                    <select class="btn btn-default ShapeFields" id="AssignDeliveryBoy" style="padding: 4px 12px;margin-top: 3px;">
+                                        <option value="0">Select Delivery Boy</option>
+                                    </select>
+                                </div>
+                             
+                                <div class="col-lg-2">
+                                    @*<input type="submit" value="Submit" class="btn btn-primary" style="border-radius: 20px;padding: 0px 12px;font-size: 14px;margin-top: 32px;" onclick="AssignOrder()" />*@
+                                    <button class="btn btn-primary ButtonShape" style="padding: 3px 8px;margin-top: 29px;" onclick="AssignOrder()"><i class="fa fa-user-plus"></i> AssignOrder</button>
+
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*<a href="#demo" data-toggle="collapse" style="border-radius: 20px;padding: 0px 12px;font-size: 14px;margin-top: 31px;">
+        <i class="fa fa-search"></i> Assign Orders
+    </a>*@
+@*<div id="demo" class="collapse">
+        <div class="col-lg-12">
+        <div class="col-lg-6">
+            <div class="panel-group">
+                <div class="panel panel-default">
+                    <div class="panel-heading"><label class="text-primary">Assign Order Delivery Boy</label></div>
+                    <div class="panel-body">
+                        <label>Delivery Boy Assign &nbsp; </label>
+                        <select class="btn btn-primary" id="AssignDeliveryBoy">
+                            <option value="0">Select Delivery Boy</option>
+                        </select>
+
+                        <div class="col-lg-offset-9">
+                            <input type="submit" value="Submit" class="btn btn-primary" style="border-radius: 20px;padding: 0px 12px;font-size: 14px;margin-top: 5px;" onclick="AssignOrder()" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <br />*@
+<br />
+@*<span id="TotalpandingRecord"></span>*@
+@{
+    if (Convert.ToString(Session["View"]) == "true")
+    {
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="col-lg-2">
+                    <h4 class="btn btn-primary ShapeFields">
+                        Total Pending Record : <span id="TotalpandingRecord" class="badge badge-primary">0</span>
+                    </h4>
+                </div>
+                <div class="col-lg-offset-1 col-lg-3">
+                    <h4 class="btn btn-primary ShapeFields">
+                        Selected Item  <span id="counts" class="badge badge-primary">0</span>
+                    </h4>
+                </div>
+            </div>
+        </div>
+        <br />
+        @*<br />*@
+        <div class="table-responsive">
+            <table style="border-collapse: collapse" class="table table-striped table-hover" id="ShowOrder">
+                <thead>
+                    <tr class="info">
+                        <th><input type="checkbox" onchange="AllSelectCheckbox()" id="AllCheck" /> All</th>
+                        <th>Order No</th>
+                        <th>OrderItem Id</th>
+                        <th>Customer Name</th>
+                        <th>Mobile No</th>
+                        <th>Delivery Address</th>
+                        <th>Area</th>
+                        <th>Zone</th>
+                        <th>Item Name</th>
+                        <th>Quentity</th>
+                        <th>Amount</th>
+                        <th>Payment Mode</th>
+                        <th>Remark</th>
+                        <th>Order Date</th>
+                        @*<th>Caller Name</th>
+                            <th>Source</th>
+                            <th>Staus</th>
+                        *@
+
+
+                    </tr>
+                </thead>
+                <tbody id="ShowOrders">
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+
+
+

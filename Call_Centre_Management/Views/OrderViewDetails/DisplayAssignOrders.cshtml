@@ -1,0 +1,1289 @@
+﻿@{
+    ViewBag.Title = "DisplayAssignOrders";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript">
+    var count = 0;
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        $("#btnGenrateInventory").hide();
+        displayAssignOrder();
+    });
+
+    function displayAssignOrder()
+    {
+        var GetAssignOrders=  @Html.Raw(Json.Encode(ViewBag.GetAssignOrder));
+        var GetAssignDateList =  @Html.Raw(Json.Encode(ViewBag.GetAssignDateList));
+
+        if (GetAssignOrders.length !=null) {
+            $("#TotalAssignRecords").html(" <font class='text-primary'>" + GetAssignOrders.length + "</font>");
+
+            $.each(GetAssignOrders, function (i, value) {
+                $("#ShowAssignOrder").append(
+                    '<tr>' +
+                    '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value.ItemId + '" class="check" > </td>' +
+                    '<td>' + value.ItemId + '</td>' +
+                    '<td>' + value.cust_name + '</td>' +
+                    '<td>' + value.cust_mobile + '</td>' +
+                    '<td>' + value.AreaName + '</td>' +
+                    '<td>' + value.zoneName + '</td>' +
+                    '<td>' + value.item_name + '</td>' +
+                    '<td>' + value.total_qty + '</td>' +
+                    '<td>' + value.Total_Price + '</td>' +
+                    '<td>' + value.Coupon + '</td>' +
+                    '<td>' + '<a data-toggle="modal" data-target="#PaymodeModal" onclick=Paymode(' + value.ItemId + ')>' + value.Payment_mode + '</a>' + '</td>' +
+                    '<td>' + value.ItemStatus + '</td>' +
+                    '<td>' + value.DeliveryAssignBy + '</td>' +
+                    '<td>' + value.InsertedDate + '</td>' +
+                    '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                    //'<td><button class="btn btn-primary"  onclick="EditItem('+ value.ItemId+')"><i class="fa fa-edit"></i> Edit</button ></td>' +
+                    '</tr>');
+            });
+        }
+        $("#AssignDate").chosen();
+
+        SelectSepcificCheckBox();
+
+    }
+
+    function SelectSepcificCheckBox()
+    {
+        var $checkboxes = $('#ShowAssignOrder td input[class="checkBoxClass"]');
+        $checkboxes.change(function () {
+            var countCheckedCheckboxes = $checkboxes.filter(':checked').length;
+            $("#Assigncounts").html(countCheckedCheckboxes);
+            if ($('#TotalAssignRecords').text() == countCheckedCheckboxes)
+            {
+                $("#allcheck").prop("checked", true);
+            }
+            else {
+                $("#allcheck").prop("checked", false);
+            }
+        });
+    }
+
+   function BindOrders() {
+       var cal = $('#txtcalendar').val();
+       var deliveryboy = $('#ddDeliveryBoy').val();
+
+       if (deliveryboy == '0') {
+           return alert ('!!Select Delivery Boy')
+       }
+       $('#loading').show();
+            $.ajax({
+                method: "Post",
+                url: "/OrderViewDetails/BindOrder",
+                data: { GetDate: cal, deliveryboy: deliveryboy },
+                success: function (value) {
+                    $('#loading').fadeOut();
+                    $("#ShowAssignOrder").empty();
+                    if (value.length > 0 && deliveryboy > 0) {
+                        $("#btnGenrateInventory").show();
+                        $("#TotalAssignRecords").html(" <font class='text-primary'>" + value.length + "</font>");
+                        for (var i = 0; i < value.length; i++) {
+                            $("#ShowAssignOrder").append(
+                                '<tr>' +
+                                '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value[i]["ItemId"] + '" class="check"  > </td>' +
+                                '<td>' + value[i]["ItemId"] + '</td>' +
+                                '<td>' + value[i]["cust_name"] + '</td>' +
+                                '<td>' + value[i]["cust_mobile"] + '</td>' +
+                                '<td>' + value[i]["AreaName"] + '</td>' +
+                                '<td>' + value[i]["zoneName"] + '</td>' +
+                                '<td>' + value[i]["item_name"] + '</td>' +
+                                '<td>' + value[i]["total_qty"] + '</td>' +
+                                '<td>' + value[i]["Total_Price"] + '</td>' +
+                                '<td>' + value[i]["Coupon"] + '</td>' +
+                                '<td>' + '<a data-toggle="modal" data-target="#PaymodeModal" onclick=Paymode(' + value[i]["ItemId"] +')>' + value[i]["Payment_mode"] +'</a>'+ '</td>' +
+                                '<td>' + value[i]["ItemStatus"] + '</td>' +
+                                '<td>' + value[i]["DeliveryAssignBy"] + '</td>' +
+                                '<td>' + value[i]["InsertedDate"] + '</td>' +
+                                '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                                //'<td><button class="btn btn-primary" onclick=EditItem(' + value[i]["ItemId"] +')><i class="fa fa-edit"></i> Edit</button ></td>' +
+                                '</tr>');
+                        }
+                    }
+                    else {
+
+                        $('#msg').fadeIn();
+                        $('#msg').html('<font color="Red">Data Not Exists ...... !! </font>');
+                        $('#msg').fadeOut(5000);
+                        $("#btnGenrateInventory").hide();
+                        $("#txtcalendar").val('');
+                        var GetAssignOrders =  @Html.Raw(Json.Encode(ViewBag.GetAssignOrder));
+                        $("#TotalAssignRecords").html(" <font class='text-primary'>" + GetAssignOrders.length + "</font>");
+                        $.each(GetAssignOrders, function (i, value) {
+                            $("#ShowAssignOrder").append(
+                                '<tr>' +
+                                '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value.ItemId + '" class="check" > </td>' +
+                                '<td>' + value.ItemId + '</td>' +
+                                '<td>' + value.cust_name + '</td>' +
+                                '<td>' + value.cust_mobile + '</td>' +
+                                '<td>' + value.AreaName + '</td>' +
+                                '<td>' + value.zoneName + '</td>' +
+                                '<td>' + value.item_name + '</td>' +
+                                '<td>' + value.total_qty + '</td>' +
+                                '<td>' + value.Total_Price + '</td>' +
+                                '<td>' + value.Coupon + '</td>' +
+                                '<td>' + '<a data-toggle="modal" data-target="#PaymodeModal" onclick=Paymode(' + value.ItemId +')>' + value.Payment_mode +'</a>'+'</td>' +
+                                '<td>' + value.ItemStatus + '</td>' +
+                                '<td>' + value.DeliveryAssignBy + '</td>' +
+                                '<td>' + value.InsertedDate + '</td>' +
+                                '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                                //'<td><button class="btn btn-primary" onclick=EditItem(' + value.ItemId +')><i class="fa fa-edit"></i> Edit</button ></td>' +
+                                '</tr>');
+                        });
+                    }
+                    $("#Assigncounts").html(0);
+                    $("#allcheck").prop("checked", false);
+                    SelectSepcificCheckBox();
+                }
+            });
+    }
+   //function BindOrders() {
+   //     debugger;
+   //     var cal = $('#txtcalendar').val();
+   //     if (cal == "") {
+   //         return alert('Select Assign date');
+   //     }
+   //     var deliveryboy = $('#ddDeliveryBoy').val();
+
+   //     $.ajax({
+   //         method: "Post",
+   //         url: "/OrderViewDetails/BindOrder",
+   //         data: { cal: cal, deliveryboy: deliveryboy },
+   //         success: function (value) {
+   //             $("#ShowAssignOrder").empty();
+   //             if (value.length > 0) {
+   //                 for (var i = 0; i < value.length; i++) {
+   //                     $("#ShowAssignOrder").append(
+   //                         '<tr>' +
+   //                         '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value[i]["ItemId"] + '" class="check" > </td>' +
+   //                         '<td>' + value[i]["id"] + '</td>' +
+   //                         '<td>' + value[i]["ItemId"] + '</td>' +
+   //                         '<td>' + value[i]["cust_name"] + '</td>' +
+   //                         '<td>' + value[i]["cust_mobile"] + '</td>' +
+   //                         '<td>' + value[i]["Address"] + '</td>' +
+   //                         '<td>' + value[i]["AreaName"] + '</td>' +
+   //                         '<td>' + value[i]["zoneName"] + '</td>' +
+   //                         '<td>' + value[i]["item_name"] + '</td>' +
+   //                         '<td>' + value[i]["total_qty"] + '</td>' +
+   //                         '<td>' + value[i]["Total_Price"] + '</td>' +
+   //                         '<td>' + value[i]["Payment_mode"] + '</td>' +
+   //                         '<td>' + value[i]["Remark"] + '</td>' +
+   //                         '<td>' + value[i]["ItemStatus"] + '</td>' +
+   //                         '<td>' + value[i]["InsertedDate"] + '</td>' +
+   //                         '</tr>');
+   //                 }
+   //             }
+   //         }
+   //     });
+   // }
+
+    function UpdateOrder()
+        {
+            if ($('#ddOrderStastus').val() == "0") {
+            return alert('Select Orders Status');
+        }
+        var Orders = [];
+
+        var GetCheckId = $("[id^=chkbox]").map(function () { return this.id }).get();
+
+       $(GetCheckId).each(function (index, value) {
+           var checkbox = $("#" + value).is(":checked");
+           if (checkbox == true) {
+               var remark = $("#chkbox" + index).val() + ',' + $("#txtdelStatus"+index).val();
+                Orders.push(remark);
+            }
+       });
+
+        var cal = $('#txtcalendar').val();
+        var deliveryboy = $('#ddDeliveryBoy').val();
+        var orderStatus = $('#ddOrderStastus').val();
+        var deliverycalendar = $('#txtdeliverycalendar').val();
+
+        $.ajax({
+            method: "Post",
+            url: "/OrderViewDetails/OrdersUpdates",
+            data: { cal: cal, deliveryboy: deliveryboy, orderStatus: orderStatus, Orders: Orders, deliverycalendar: deliverycalendar},
+            success: function (data) {
+
+                if (data == true) {
+
+                    $('#loading').fadeIn();
+                    $('#txtdeliverycalendar').val('');
+                    $('#ddOrderStastus').empty();
+                    $('#ddOrderStastus').append('<option value="0">-- Select Order Status --</option><option value="1">UnAssign</option><option value="2">Deliverd</option><option value="-1">Canceled</option>')
+                    BindOrders();
+
+                    $('#loading').fadeOut();
+                    alert('Orders updated Sucesfully');
+
+                }
+                else {
+                    return alert('Orders Not Updated');
+                }
+                $("#Assigncounts").html(0);
+                $("#allcheck").prop("checked", false);
+                SelectSepcificCheckBox();
+
+            }
+        });
+    }
+
+    function SearchOrder() {
+        //var cal = $('#txtcalendar').val();
+        var orderItemId = $('#txtOrderId').val();
+        var GetSelectfillterName = $('#ddFillterNm').val();
+        if (GetSelectfillterName === '0') { return alert("Please Select Fillter Name"); }
+        $('#loading').show();
+        if (orderItemId === "")
+        {
+            location.reload();
+        }
+        else {
+
+            $.ajax({
+                method: "Post",
+                url: "/OrderViewDetails/SearchOrderItemNew",
+                data: { orderItemId: orderItemId, GetFillterName: GetSelectfillterName },
+                success: function (value) {
+                    $('#loading').fadeOut();
+                    $("#ShowAssignOrder").empty();
+                    if (value.length > 0 && orderItemId > '') {
+                        $("#TotalAssignRecords").html(" <font class='text-primary'>" + value.length + "</font>");
+                        for (var i = 0; i < value.length; i++) {
+                            $("#ShowAssignOrder").append(
+                                '<tr>' +
+                                '<td><input type="checkbox" class="checkBoxClass"  id="chkbox' + i + '" value="' + value[i]["ItemId"] + '" class="check" > </td>' +
+                                // '<td>' + value[i]["id"] + '</td>' +
+                                '<td>' + value[i]["ItemId"] + '</td>' +
+                                '<td>' + value[i]["cust_name"] + '</td>' +
+                                '<td>' + value[i]["cust_mobile"] + '</td>' +
+                                // '<td>' + value[i]["Address"] + '</td>' +
+                                '<td>' + value[i]["AreaName"] + '</td>' +
+                                '<td>' + value[i]["zoneName"] + '</td>' +
+                                '<td>' + value[i]["item_name"] + '</td>' +
+                                '<td>' + value[i]["total_qty"] + '</td>' +
+                                '<td>' + value[i]["Total_Price"] + '</td>' +
+                                '<td>' + value[i]["Coupon"] + '</td>' +
+                                '<td>' + value[i]["Payment_mode"] + '</td>' +
+                                // '<td>' + value[i]["Remark"] + '</td>' +
+                                '<td>' + value[i]["ItemStatus"] + '</td>' +
+                                '<td>' + value[i]["DeliveryAssignBy"] + '</td>' +
+                                '<td>' + value[i]["InsertedDate"] + '</td>' +
+                                '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                                //'<td><button class="btn btn-primary" onclick=EditItem(' + value[i]["ItemId"] +')><i class="fa fa-edit"></i> Edit</button ></td>' +
+                                '</tr>');
+                        }
+                    }
+                    else {
+                        $("#txtcalendar").val('');
+                        $("#txtOrderId").val('');
+                        $("#ddDeliveryBoy").val("0");
+                        var GetAssignOrders =  @Html.Raw(Json.Encode(ViewBag.GetAssignOrder));
+                        $("#TotalAssignRecords").html(" <font class='text-primary'>" + GetAssignOrders.length + "</font>");
+                        $.each(GetAssignOrders, function (i, value) {
+                            //value = "' + value.ItemId + '"
+                            $("#ShowAssignOrder").append(
+                                '<tr>' +
+                                '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value.ItemId + '" class="check" > </td>' +
+                                //'<td>' + value.id + '</td>' +
+                                '<td>' + value.ItemId + '</td>' +
+                                '<td>' + value.cust_name + '</td>' +
+                                '<td>' + value.cust_mobile + '</td>' +
+                                // '<td>' + value.Address + '</td>' +
+                                '<td>' + value.AreaName + '</td>' +
+                                '<td>' + value.zoneName + '</td>' +
+                                '<td>' + value.item_name + '</td>' +
+                                '<td>' + value.total_qty + '</td>' +
+                                '<td>' + value.Total_Price + '</td>' +
+                                '<td>' + value.Coupon + '</td>' +
+                                '<td>' + value.Payment_mode + '</td>' +
+                                // '<td>' + value.Remark + '</td>' +
+                                '<td>' + value.ItemStatus + '</td>' +
+                                '<td>' + value.DeliveryAssignBy + '</td>' +
+                                '<td>' + value.InsertedDate + '</td>' +
+                                '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                               // '<td><button class="btn btn-primary" onclick=EditItem(' + value.ItemId +')><i class="fa fa-edit"></i> Edit</button ></td>' +
+
+                                //'<td>' + value.callerName + '</td>' +
+                                //'<td>' + value.Source + '</td>' +
+                                //'<td>' + value.item_Active + '</td>' +
+                                //'<td>' + value.InsertedDate + '</td>' +
+                                '</tr>');
+                        });
+                    }
+                    $("#Assigncounts").html(0);
+                    $("#allcheck").prop("checked", false);
+                    SelectSepcificCheckBox();
+                }
+            });
+
+
+       }
+    }
+
+    @*function SearchOrder() {
+        var cal = $('#txtcalendar').val();
+        var orderItemId = $('#txtOrderId').val();
+        $('#loading').show();
+        $.ajax({
+            method: "Post",
+            url: "/OrderViewDetails/SearchOrderItem",
+            data: { orderItemId: orderItemId },
+            success: function (value) {
+                $('#loading').fadeOut();
+                $("#ShowAssignOrder").empty();
+                if (value.length > 0 && orderItemId > '') {
+                    $("#TotalAssignRecords").html(" <font class='text-primary'>" + value.length + "</font>");
+                    for (var i = 0; i < value.length; i++) {
+
+                        $("#ShowAssignOrder").append(
+                            '<tr>' +
+                            '<td><input type="checkbox" class="checkBoxClass"  id="chkbox' + i + '" value="' + value[i]["ItemId"] + '" class="check" > </td>' +
+                           // '<td>' + value[i]["id"] + '</td>' +
+                            '<td>' + value[i]["ItemId"] + '</td>' +
+                            '<td>' + value[i]["cust_name"] + '</td>' +
+                            '<td>' + value[i]["cust_mobile"] + '</td>' +
+                           // '<td>' + value[i]["Address"] + '</td>' +
+                            '<td>' + value[i]["AreaName"] + '</td>' +
+                            '<td>' + value[i]["zoneName"] + '</td>' +
+                            '<td>' + value[i]["item_name"] + '</td>' +
+                            '<td>' + value[i]["total_qty"] + '</td>' +
+                            '<td>' + value[i]["Total_Price"] + '</td>' +
+                            '<td>' + value[i]["Coupon"] + '</td>' +
+                            '<td>' + value[i]["Payment_mode"] + '</td>' +
+                           // '<td>' + value[i]["Remark"] + '</td>' +
+                            '<td>' + value[i]["ItemStatus"] + '</td>' +
+                            '<td>' + value[i]["DeliveryAssignBy"] + '</td>' +
+                            '<td>' + value[i]["InsertedDate"] + '</td>' +
+                            '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+                            '</tr>');
+                    }
+                }
+
+                else
+                {
+                    $("#txtcalendar").val('');
+                    $("#txtOrderId").val('');
+                    $("#ddDeliveryBoy").val("0");
+                    var GetAssignOrders =  @Html.Raw(Json.Encode(ViewBag.GetAssignOrder));
+                    $("#TotalAssignRecords").html(" <font class='text-primary'>" + GetAssignOrders.length + "</font>");
+                    $.each(GetAssignOrders, function (i, value) {
+                        //value = "' + value.ItemId + '"
+                        $("#ShowAssignOrder").append(
+                            '<tr>' +
+                            '<td><input type="checkbox" class="checkBoxClass" id="chkbox' + i + '" value="' + value.ItemId + '" class="check" > </td>' +
+                            //'<td>' + value.id + '</td>' +
+                            '<td>' + value.ItemId + '</td>' +
+                            '<td>' + value.cust_name + '</td>' +
+                            '<td>' + value.cust_mobile + '</td>' +
+                           // '<td>' + value.Address + '</td>' +
+                            '<td>' + value.AreaName + '</td>' +
+                            '<td>' + value.zoneName + '</td>' +
+                            '<td>' + value.item_name + '</td>' +
+                            '<td>' + value.total_qty + '</td>' +
+                            '<td>' + value.Total_Price + '</td>' +
+                            '<td>' + value.Coupon  + '</td>' +
+                            '<td>' + value.Payment_mode + '</td>' +
+                           // '<td>' + value.Remark + '</td>' +
+                            '<td>' + value.ItemStatus + '</td>' +
+                            '<td>' + value.DeliveryAssignBy + '</td>' +
+                            '<td>' + value.InsertedDate + '</td>' +
+                            '<td><input id = "txtdelStatus' + i + '"  type = "text" class= "form-control" /></td>' +
+
+                            //'<td>' + value.callerName + '</td>' +
+                            //'<td>' + value.Source + '</td>' +
+                            //'<td>' + value.item_Active + '</td>' +
+                            //'<td>' + value.InsertedDate + '</td>' +
+                            '</tr>');
+                    });
+                }
+                $("#Assigncounts").html(0);
+                $("#allcheck").prop("checked", false);
+                SelectSepcificCheckBox();
+            }
+        });
+    }*@
+
+    function selectall(obj) {
+
+        //var checkboxes = document.querySelectorAll('input[class="checkBoxClass"]');
+        //// console.log(checkboxes);
+        //for (var i = 0; i < checkboxes.length; i++) {
+        //    //var c = ('input id="chkbox' + i + '" [class="checkBoxClass"]');
+        //    //console.log(c);
+        //    if (checkboxes[i] != obj)
+        //        checkboxes[i].checked = obj.checked;
+        //}
+        //var checkBoxValue = $(obj).is(':checked');
+
+        var CheckedAll = $("#allcheck").is(":checked");
+        $("input[type=checkbox]").each(function (index, value) {
+            if (CheckedAll == true) {
+                $("#chkbox" + index).prop("checked", true);
+                $("#Assigncounts").html($('#ShowAssignOrder td input[type="checkbox"]').length);
+            }
+            else {
+                $("#Assigncounts").html(0);
+                $("#chkbox" + index).removeAttr("checked");
+            }
+        });
+
+    }
+
+    //Comment by Lucky
+    //function Paymode(itemid)
+    //{
+    //    if (itemid > 0)
+    //    {
+    //        $.ajax({
+    //            method: "Get",
+    //            url: "/OrderViewDetails/GetPaymentDetails",
+    //            data: { Itemid: itemid},
+    //            success: function (Result) {
+    //                if (Result != null) {
+    //                    $("#itemvalue").val(Result.id);
+    //                    if (Result.Payment_mode === "Cod") { $("#paymentdivid").hide(); } else { $("#paymentdivid").show(); }
+    //                    $("#paymodeselect").val(Result.Payment_mode).prop("selected", true);
+    //                    $("#paymentId").val(Result.paymentNumber);
+    //                    $("#RemarkPayment").val(Result.payment_remark);
+    //                }
+    //            }
+    //        });
+    //    }
+
+    //}
+    function SubmitPaymode()
+    {
+        var GetPayData = {};
+        GetPayData.id = $("#itemvalue").val();
+        GetPayData.Payment_mode = $("#paymodeselect").val();
+        GetPayData.payment_remark = $("#RemarkPayment").val();
+        GetPayData.paymentNumber = $("#paymentId").val();
+        if ($("#paymodeselect").val() === "0") { return alert("Please Select Payment Mode.."); }
+        if (($("#paymodeselect").val() === "Paytm" || $("#paymodeselect").val() === "PhonePe" || $("#paymodeselect").val() === "GooglePay") && $("#paymentId").val() === "") { return alert("Please Fill Payment Number.."); }
+        else {
+            $.ajax({
+                method: "Post",
+                url: "/OrderViewDetails/EditPaymodeDetail",
+                data: { ord:GetPayData },
+                success: function (Result) {
+                    console.log(Result);
+                    if (Result == true) {
+                        alert("Payment Mode Update successfully...");
+                        location.reload();
+                    }
+                    else
+                    {
+                        alert("Payment Mode Update... ");
+                    }
+                }
+            });
+        }
+    }
+    function paymodeonchange()
+    {
+        var Getoptionvalue = $("#paymodeselect").val();
+        if (Getoptionvalue === "0") {
+            $("#paymentdivid").show();
+            return alert("Please Select Payment Mode..");
+        }
+        if (Getoptionvalue === "Cod") { $("#paymentdivid").hide(); }
+        else if (Getoptionvalue === "PhonePe") { $("#paymentId").val(""); $("#paymentdivid").show();}
+        else if (Getoptionvalue === "GooglePay") { $("#paymentId").val(""); $("#paymentdivid").show();}
+        else if (Getoptionvalue === "Paytm") { $("#paymentId").val(""); $("#paymentdivid").show();}
+        else { $("#paymentdivid").show(); }
+    }
+    function EditItem(ItemId)
+    {
+       if (ItemId > 0)
+        {
+            $.ajax({
+                url: "/OrderViewDetails/GetItemDetails",
+                method: "Get",
+                data: { Id: ItemId},
+                success: function (Result)
+                {
+                    if (Result.length > 0)
+                    {
+                        $("#GetOrderId").val(Result[0].id);
+                        $.each(Result, function (index, value) {
+                            $('#txt_itemName' + index).val(value.item_name);
+                            $('#txt_itemqty' + index).val(value.item_qty);
+                            $('#txt_itemrate' + index).val(value.item_rate);
+                            $('#txt_total_amount' + index).val(value.item_total_amount);
+                            $('#items_itemId' + index).val(value.item_id);
+
+                            $('#TotaqtyShow').html(value.item_qty);
+                            $('#TotalpriceShow').html(value.item_total_amount);
+                        });
+                        $('#Itemupdatepopup').modal();
+                        $('.modal').on('shown.bs.modal', function () {
+                            $(this).find('input:text:visible:first').focus();
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    $(document).on('keydown', '.txtbox', function () {
+        var id = this.id;
+
+        $('#' + id).autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/Order/AutocompleteItem",
+                    type: "POST",
+                    dataType: "json",
+                    data: { prifix: request.term },
+                    success: function (data) {
+                        if (data.length > 0) {
+                            response($.map(data, function (item) {
+                                return { label: item.item_name, value: item.item_name, data: item.id };
+                            }))
+                        }
+                        else {
+                            $('#' + id).val('');
+                        }
+                    }
+                })
+            },
+            select: function (event, ui) {
+                var GetNumericvalue = id.substring(12, id.length);
+                if ($("#txt_itemqty" + GetNumericvalue).val() != "" && $("#" + id).val() != "") {
+                    $('#addMore2').removeAttr("disabled");
+                    $('#btn_nsert').removeAttr("disabled");
+                }
+                var SendItemName = ui.item.data;
+                GetItemRate(SendItemName, id);
+            }
+        });
+    });
+
+    function GetItemRate(GetId, trid) {
+        var GetTr = trid.substring(12, trid.length);
+        if ($("#" + GetId).val() != "") { $("#ErrorMsg" + GetTr).hide(); }
+        $.ajax({
+            url: "/Order/AutocompleteItemRate",
+            method: "post",
+            dataType: "json",
+            data: { GetItemId: GetId },
+            success: function (Result) {
+                GetRate = Result.rate;
+                $("#txt_itemrate" + GetTr).val(GetRate);
+            }
+        });
+    }
+
+    $(function () {
+        //onclick = "RemoveItem(this);GetTotalQtyAmt(this);"
+        $('#addMore2').on('click', function () {
+
+            count++;
+            $("#ItemTable tbody").append('<tr id="myRow' + count + '"><td hidden="hidden"><input type="text" id="items_itemId' + count + '"></td><td><input type="text"  id="txt_itemName' + count + '" class="txtbox ShapeFields" onchange="validationItem(this)"/><span id="ErrorMsg' + count + '"></span></td><td><input type="text"  id="txt_itemqty' + count + '"  class="form-control ShapeFields"  onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))"  onchange="GetTotalQtyAmt(this);validationQty(this);"/><span id="ErrorqtyMsg' + count + '"></span></td> <td><input type="text" id="txt_itemrate' + count + '" class="form-control ShapeFields" disabled="disabled"/></td> <td><input type="text" id="txt_total_amount' + count + '" class="form-control ShapeFields" disabled /></td><td><a class="remove" onclick = "RemoveItem(this);GetTotalQtyAmt(this);" >X</a></td></tr > ');
+            $("#txt_itemName" + count).focus();
+            var check = count - 1;
+            var validateId = $("#txt_itemName" + check).val();
+            var validateRate = $("#txt_itemqty" + check).val();
+
+            if (check == 0 || check > 0) {
+                if (validateId == "" && validateRate == "") {
+                    $("#txt_itemName" + check).focus();
+                    $("#ErrorMsg" + check).html("<font color='red'>Please Fill Item Name</font>");
+                    $("#ErrorqtyMsg" + check).html("<font color='red'>Please Fill Item Quentity</font>");
+                    $('#addMore2').attr("disabled", true);
+                    $('#EditItem').attr("disabled", true);
+                    $("#myRow" + count).remove();
+                }
+                else if ((validateId == "" && validateRate != "") || validateId == "") {
+                    $("#txt_itemName" + check).focus();
+                    $("#ErrorMsg" + check).html("<font color='red'>Please Fill Item Name</font>");
+                    $('#addMore2').attr("disabled", true);
+                    $('#EditItem').attr("disabled", true);
+                    $("#myRow" + count).remove();
+
+                }
+                else if ((validateId != "" && validateRate == "") || validateRate == "") {
+                    $("#txt_itemqty" + check).focus();
+                    $("#ErrorqtyMsg" + check).html("<font color='red'>Please Fill Item Quentity</font>");
+                    $('#addMore2').attr("disabled", true);
+                    $('#EditItem').attr("disabled", true);
+                    $("#myRow" + count).remove();
+                }
+            }
+        });
+    });
+
+    var checkErrorcount = 0;
+    var checkErrorqtycount = 0;
+    function validationItem(GetItemid)
+    {
+        var GetItemId = "#" + $(GetItemid).attr("id");
+        var GetNumber = GetItemId.substring(13, GetItemId.length);
+        if ($(GetItemId).val() === "") {
+            checkErrorcount++;
+            $("#ErrorMsg" + GetNumber).html("<font color='red'>Please Fill Item Name</font>");
+            $("#ErrorMsg" + GetNumber).show();
+            $("#txt_itemrate" + GetNumber).val("");
+            $("#txt_total_amount" + GetNumber).val("");
+            $("#txt_itemqty" + GetNumber).val("");
+            $('#addMore2').attr("disabled", true);
+            $('#EditItem').attr("disabled", true);
+        }
+        if (checkErrorcount > 0) { $('#addMore2').attr("disabled", true);}
+        if ($("#txt_itemqty" + GetNumber).val() !== "" && $(GetItemId).val() !== "") { $('#addMore2').removeAttr("disabled", true); $('#EditItem').removeAttr("disabled", true); }
+
+    }
+
+    function validationQty(GetItemqty) {
+        var GetItemqty = "#" + $(GetItemqty).attr("id");
+        var GetNumber = GetItemqty.substring(12, GetItemqty.length);
+        if ($(GetItemqty).val() === "")
+        {
+            checkErrorqtycount++;
+            $("#ErrorqtyMsg" + GetNumber).html("<font color='red'>Please Fill Item Quentity</font>");
+            $("#ErrorqtyMsg" + GetNumber).show();
+            $("#txt_total_amount" + GetNumber).val("");
+            $('#addMore2').attr("disabled", true);
+            $('#EditItem').attr("disabled", true);
+        }
+        if (checkErrorqtycount > 0) { $('#addMore2').attr("disabled", true); }
+        if ($("#txt_itemName" + GetNumber).val() !== "" && $(GetItemqty).val() !== "") { $('#addMore2').removeAttr("disabled", true); $('#EditItem').removeAttr("disabled", true); }
+    }
+
+    function GetTotalQtyAmt(GetId) {
+        var GetItemqtyId = $(GetId).attr("id");
+        if ($("#" + GetItemqtyId).val() == undefined) { }
+        else {
+            if ($("#" + GetItemqtyId).val() > 0) {
+
+                var stulist = new Array();
+                var row = $("#ItemTable").find("tr").length;
+                for (var i = 1; i < row; i++) {
+
+                    stulist.push({
+                        //yha kaam tha vo
+                        item_name: $("#ItemTable").find("tr").eq(i).find('td:eq(1) input[type="text"]').val(),
+                        item_qty: $("#ItemTable").find("tr").eq(i).find('td:eq(2) input[type="text"]').val(),
+                        item_rate: $("#ItemTable").find("tr").eq(i).find('td:eq(3) input[type="text"]').val(),
+                        item_total_amount: $("#ItemTable").find("tr").eq(i).find('td:eq(4) input[type="text"]').val()
+                    })
+                }
+                var CountValue = { ItemDetails: stulist }
+                $.ajax({
+                    url: "/Employee/gettotal",
+                    method: "Post",
+                    data: { order: CountValue },
+                    success: function (result) {
+                        var GetRow = GetItemqtyId.substring(11, GetItemqtyId.length);
+                        $("#txt_total_amount" + GetRow).val($("#txt_itemrate" + GetRow).val() * $("#" + GetItemqtyId).val());
+
+                        $('#TotaqtyShow').html(result.item_qty);
+                        $('#TotalpriceShow').html(result.item_total_amount);
+
+                        $('#txt_total_qty').text(result.item_qty);
+                        $('#txt_total_price').text(result.item_total_amount);
+                        $("#ErrorqtyMsg" + GetRow).hide();
+                        //$('#addMore2').removeAttr("disabled");
+                        //$('#btn_nsert').removeAttr("disabled");
+                    }
+                })
+            }
+            else {
+                alert("Please Enter Quantity greater than 0");
+                $('#addMore2').attr("disabled", true);
+                $('#EditItem').attr("disabled", true);
+            }
+        }
+    }
+
+    function RemoveItem(getId) {
+        var trIndex = $(getId).closest("tr").index();
+        if (trIndex > 0) {
+
+            var ItemOrderID = $(getId).closest('tr').find('td:eq(0) input').val()
+            DeleteOrderItem(ItemOrderID)
+
+            var GetQty = $(getId).closest('tr').find('td:eq(2) input').val()
+            var GetTopQty = $('#TotaqtyShow').text($('#TotaqtyShow').html() - GetQty);
+
+            var GetTotalPrice = $(getId).closest('tr').find('td:eq(4) input').val()
+            var GetTopTotal = $('#TotalpriceShow').text($('#TotalpriceShow').html() - GetTotalPrice);
+
+            $(getId).closest("tr").remove();
+            $('#addMore2').removeAttr("disabled");
+            $('#EditItem').removeAttr("disabled");
+
+            $('#txt_total_qty').html(GetTopQty.text());
+            $('#txt_total_price').html(GetTopTotal.text());
+        }
+    }
+
+    function DeleteOrderItem(id) {
+        if (id > 0) {
+            $.ajax({
+                url: "/Order/delte_OrderItem",
+                method: "Get",
+                data: { id: id },
+                success: function (Result) {
+
+
+                }
+            });
+        }
+    }
+
+    function UpdateItem()
+    {
+        var stulist = new Array();
+        var row = $("#ItemTable").find("tr").length;
+        for (var i = 1; i < row; i++) {
+                stulist.push({
+                    item_id: $("#ItemTable").find("tr").eq(i).find('td:eq(0) input[type="text"]').val(),
+                    item_name: $("#ItemTable").find("tr").eq(i).find('td:eq(1) input[type="text"]').val(),
+                    item_qty: $("#ItemTable").find("tr").eq(i).find('td:eq(2) input[type="text"]').val(),
+                    item_rate: $("#ItemTable").find("tr").eq(i).find('td:eq(3) input[type="text"]').val(),
+                    item_total_amount: $("#ItemTable").find("tr").eq(i).find('td:eq(4) input[type="text"]').val()
+                })
+        }
+
+        if (stulist != null || stulist.length > 0)
+        {
+            $.ajax({
+                url: "/OrderViewDetails/UpdateItem",
+                method: "post",
+                data: { ItemModal: stulist, OrderId: $("#GetOrderId").val()},
+                success: function (Result)
+                {
+                    if (Result > 0) {
+                        alert("Record Updated SuccessFully..");
+                        location.reload();
+                    }
+                    else { alert("Something wrong..");}
+                }
+            });
+
+        }
+
+    }
+
+    function DisplayInventoryBalance() {
+        var GetCheckedList = [];
+        var DeliveryId = $("#ddDeliveryBoy").val();
+        var GetCheckId = $("[id^=chkbox]").map(function () { return this.id }).get();
+        $(GetCheckId).each(function (index, value) {
+            var checkbox = $("#" + value).is(":checked");
+            if (checkbox == true) {
+                var GetId = $("#chkbox" + index).val();
+                GetCheckedList.push(GetId);
+            }
+        });
+
+        if (GetCheckedList.length > 0 && DeliveryId > 0) {
+            $.ajax({
+                url: "/Order/OrederInventory",
+                method: "post",
+                data: { GetItemId: GetCheckedList, DeliveryBoyId: DeliveryId },
+                success: function (Result) {
+                    $("#CountQuentity").text(Result.GetQuentyitem3.item_qty);
+                    $("#NetReceiable").text(Result.GetQuentyitem3.ReciableAmt);
+                    $("#DisplayDetails").empty();
+                    $("#displayPayment").empty();
+                    $.each(Result.itemlist, function (i, value) {
+                        $("#DisplayDetails").append(
+                            '<tr>' +
+                            '<td>' + value.RawItemName + '</td>' +
+                            '<td>' + value.InQty + '</td>' +
+                            '<td>' + value.OutQty + '</td>' +
+                            '<td>' + value.item_rate + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    $.each(Result.itemlist2, function (n, v) {
+                        $("#displayPayment").append(
+                            '<tr>' +
+                            '<td class="left">' +
+                            '<strong>' + v.PayCharge+'</strong>' +
+                            '</td>' +
+                            '<td class="right">' + v.item_total_amount+ '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    $("#Inventorypopup").modal({
+                        show: true,
+                        backdrop: 'static'
+                    });
+                }
+            });
+        }
+        else {
+            alert("Something Wrong..");
+        }
+    }
+
+
+    function OnchangeQtyAmt(Price)
+    {
+        var GetPrice=$(Price).val();
+        var s = GetPrice*$("#CountQuentity").text();
+        var d = $("#NetReceiable").text()+s;
+
+    }
+
+</script>
+
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+<br />
+<span id="msg"></span>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="col-lg-2">
+            <label>Assign date</label>&nbsp;&nbsp;
+            <input type="date" id="txtcalendar" class="ShapeFields" />
+            @*<select class="chzn-select" multiple style="width:200px;" title="Assign Date" id="AssignDate" data-placeholder="Select Assign Date List...">*@
+            @*<option>Mustard</option>
+                <option>Ketchup</option>
+                <option>Relish</option>*@
+            @*</select>*@
+        </div>
+       
+        <div class="col-lg-2">
+            <label>Delivery Boy</label>&nbsp;&nbsp;
+            <select id="ddDeliveryBoy" class="btn btn-default ShapeFields">
+                <option value="0">-- Select Delivery Boy -- </option>
+                @{ if (ViewBag.deliveryBoy != null)
+                    {
+                        foreach (var n in ViewBag.deliveryBoy)
+                        {
+                            <option value="@n.id">@n.fullName</option>
+                        }
+                    }
+                }
+            </select>
+
+        </div>
+        <div class="col-lg-2" style="margin-top:1.5%"><input type="submit" value="Search" id="SearchAssign" class="btn btn-primary ButtonShape" onclick="BindOrders()" /></div>
+
+        <div class="col-lg-1" style="margin-top:1%"><h4><b>or</b></h4></div>
+
+        <div class="col-lg-2">
+            <select id="ddFillterNm" class="btn btn-default ShapeFields" style="margin-top:11%">
+                <option value="0">-- Select Find Name -- </option>
+                <option value="OrderId">Order ID</option>
+                <option value="ItemId" selected="selected">Item ID </option>
+                <option value="Phone">Mobile Number </option>
+            </select>
+        </div>
+
+        <div class="col-lg-3">
+            @*<label>Find Order</label>&nbsp;&nbsp;*@
+            @* <input id="txtOrderId" type="text" class="ShapeFields" placeholder="Find Order & ItemId" onchange="SearchOrder()" />*@
+            <div class="input-group">
+                <input id="txtOrderId" type="search" class="ShapeFields" style="margin-top:8%;height:30px;" placeholder="Search" aria-label="Search" aria-describedby="search-addon" />&nbsp;
+                <button type="button" class="btn btn-primary ButtonShape" onclick="SearchOrder()">Search</button>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<br />
+<div class="row">
+    <div class="col-lg-12">
+        <div class="col-lg-3">
+            <label>Delivery Date</label>&nbsp;
+            <input type="date" id="txtdeliverycalendar" class="ShapeFields" />
+        </div>
+        <div class="col-lg-3">
+            <label>Order Status</label>&nbsp;&nbsp;
+            <select class="btn btn-default ShapeFields" id="ddOrderStastus">
+                <option value="0">-- Select Order Status --</option>
+                <option value="1">UnAssign</option>
+                <option value="2">Deliverd</option>
+                <option value="-1">Canceled</option>
+            </select>
+        </div>
+        <div class="col-lg-4">
+            @{
+                if (Convert.ToString(Session["Insert"]) == "true")
+                {
+                    <input type="submit" id="btnUpdate" class="btn btn-primary ButtonShape" onclick="UpdateOrder()" />
+                }
+            }
+
+            <input type="submit" id="btnClear" value="Refresh" class="btn btn-primary ButtonShape" onclick="location.reload()" />
+        </div>
+
+    </div>
+
+    @*<div class="col-lg-12">
+            <div class="col-lg-4" style="text-align:center">
+                @{if (Convert.ToString(Session["Edit"]) == "true")
+                    {
+                        <a id="btnUpdate" class="btn btn-primary" style="border-radius: 20px;padding: 0px 12px;font-size: 14px;" onclick="UpdateOrder()">
+                            <i class="fa fa-edit"></i> Update
+                        </a>
+
+                        <a id="btnClear" class="btn btn-primary" style="border-radius: 20px;padding: 0px 12px;font-size: 14px;" onclick="location.reload()">
+                            <i class="fa fa-refresh"></i> Refresh
+                        </a>
+                    }
+                }
+
+            </div>
+            <div class="col-lg-2" style="text-align:center">
+
+            </div>
+        </div>*@
+
+</div>
+<br />
+
+
+
+@{
+    if (Convert.ToString(Session["View"]) == "true")
+    {
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="col-lg-2">
+                    <h4 class="btn btn-primary ShapeFields">
+                        Total Assign Record : <span id="TotalAssignRecords" class="badge badge-primary">0</span>
+                    </h4>
+                </div>
+
+                <div class="col-lg-offset-1 col-lg-2">
+                    <h4 class="btn btn-primary ShapeFields">
+                        Selected Item  <span id="Assigncounts" class="badge badge-primary">0</span>
+                    </h4>
+                </div>
+
+                <div class="col-lg-offset-3 col-lg-1">
+                    <button id="btnGenrateInventory" class="btn btn-primary ButtonShape" onclick="DisplayInventoryBalance()">Inventory</button>
+                </div>
+
+                @*<div class="col-lg-3">
+                        <button id="btnUpdate" class="btn btn-primary ButtonShape">Dispatch</button>
+                    </div>*@
+
+
+                @*<div class="col-lg-offset-2 col-lg-3">
+                        <label>Search</label>&nbsp;&nbsp;
+                        <input id="OrderStatusDisplay" type="text" placeholder="Search.." onkeyup="FilltersRecord(this,'ShowAssignOrder')">
+                    </div>*@
+            </div>
+        </div>
+        <div>
+            <span></span>
+        </div>
+        <div class="table-responsive">
+            <table style="border-collapse: collapse" class="table table-striped table-hover">
+                <thead>
+                    <tr class="info">
+                        <th>All<input type="checkbox" id="allcheck" onchange="selectall(this)" class="checkBoxClass" /></th>
+                        @*<th>Order No</th>*@
+                        <th>Item Id</th>
+                        <th>Customer Name</th>
+                        <th>Mobile No</th>
+                        @*<th>Delivery Address</th>*@
+                        <th>Area</th>
+                        <th>Zone</th>
+                        <th>Item Name</th>
+                        <th>Total Qty</th>
+                        <th>Total Amt</th>
+                        <th>Coupon</th>
+                        <th>Pay Mode</th>
+                        @*<th>Remark</th>*@
+                        <th>Status</th>
+                        <th>Delivery BoyName</th>
+                        <th>Order Date</th>
+                        <th>Delivery Remark</th>
+                        @*<th>Action</th>*@
+
+                    </tr>
+                </thead>
+                <tbody id="ShowAssignOrder">
+                </tbody>
+            </table>
+        </div>
+    }
+}
+@*<th>State</th>
+    <th>Caller Name</th>
+    <th>Source</th>
+    <th>Staus</th>
+    <th>Order Date</th>*@
+
+@*Session["View"] = "true";
+    Session["Edit"] = "true";
+    Session["Insert"] = "true";
+    Session["Delete"] = "true";*@
+
+
+
+<div id="Itemupdatepopup" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Item details</h4>
+            </div>
+            <div class="modal-body ui-front">
+                <p>Total Quntity&nbsp;:&nbsp;&nbsp;<span id="TotaqtyShow"></span>&nbsp;&nbsp;Total Price&nbsp;:&nbsp;&nbsp;<span id="TotalpriceShow"></span></p>
+                <div class="table-responsive">
+                    <!--Table-->
+                    <input type="hidden" id="GetOrderId" />
+                    <table class="table table-striped" id="ItemTable">
+                        <!--Table head-->
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Rate</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td hidden="hidden"><input type="text" id="items_itemId0"></td>
+                                <td><input id="txt_itemName0" type="text" class="txtbox ShapeFields" onchange="validationItem(this);" /> <span id="ErrorMsg0"></span></td>
+                                <td><input id="txt_itemqty0" type="text" class="form-control ShapeFields" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" onchange="GetTotalQtyAmt(this); validationQty(this);" /> <span id="ErrorqtyMsg0"></span></td>
+                                <td><input id="txt_itemrate0" type="text" class="form-control ShapeFields" readonly="readonly" /></td>
+                                <td><input id="txt_total_amount0" type="text" class="form-control ShapeFields" readonly="readonly" /></td>
+                            </tr>
+                        </tbody>
+                        <!--Table body-->
+                    </table>
+                    <!--Table-->
+                </div>
+                <div class="modal-footer">
+                    <button id="addMore2" class="btn btn-danger ShapeFields"> <i class="fa fa-save"></i>  Add New Row</button>
+                    <button type="button" class="btn btn-primary ShapeFields" id="EditItem" onclick="UpdateItem()"><i class="fa fa-save"></i> Submit</button>
+                    <button type="button" class="btn btn-default ShapeFields" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="Inventorypopup" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Inventory Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @*<div class="container col-lg-12">*@
+                <div class="card">
+                    @*<div class="card-header">
+                            Invoice
+                            <strong>01/01/01/2018</strong>
+                            <span class="float-right"> <strong>Status:</strong> Pending</span>
+                        </div>*@
+                    <div class="card-body">
+                        @*<div class="row mb-4">
+                                <div class="col-sm-6">
+                                    <h6 class="mb-3">From:</h6>
+                                    <div>
+                                        <strong>Webz Poland</strong>
+                                    </div>
+                                    <div>Madalinskiego 8</div>
+                                    <div>71-101 Szczecin, Poland</div>
+                                    <div>Email: info@webz.com.pl</div>
+                                    <div>Phone: +48 444 666 3333</div>
+                                </div>
+
+                                <div class="col-sm-6">
+                                    <h6 class="mb-3">To:</h6>
+                                    <div>
+                                        <strong>Bob Mart</strong>
+                                    </div>
+                                    <div>Attn: Daniel Marek</div>
+                                    <div>43-190 Mikolow, Poland</div>
+                                    <div>Email: marek@daniel.com</div>
+                                    <div>Phone: +48 123 456 789</div>
+                                </div>
+                            </div>*@
+
+                        <div class="table-responsive-sm">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th>In Quantity</th>
+                                        <th>Out Quantity</th>
+                                        <th class="right">Pending Quantity</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody id="DisplayDetails">
+                                    @*<tr>
+                                            <td class="left strong">Origin License</td>
+                                            <td class="left">Extended License</td>
+
+                                            <td class="right">$999,00</td>
+                                            <td class="right">$999,00</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="left">Custom Services</td>
+                                            <td class="left">Instalation and Customization (cost per hour)</td>
+
+                                            <td class="right">$150,00</td>
+                                            <td class="right">$150,00</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="left">Hosting</td>
+                                            <td class="left">1 year subcription</td>
+
+                                            <td class="right">$499,00</td>
+                                            <td class="right">$499,00</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="left">Platinum Support</td>
+                                            <td class="left">1 year subcription 24/7</td>
+
+                                            <td class="right">$3.999,00</td>
+                                            <td class="right">$3.999,00</td>
+                                        </tr>*@
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-4 col-sm-5 ml-auto">
+                                <table class="table table-clear">
+                                    <tbody id="displayPayment">
+                                        @*<tr>
+                                                <td class="left">
+                                                    <strong>Cash</strong>
+                                                </td>
+                                                <td class="right">$8.497,00</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="left">
+                                                    <strong>Paytm</strong>
+                                                </td>
+                                                <td class="right">$1,699,40</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="left">
+                                                    <strong>Online</strong>
+                                                </td>
+                                                <td class="right">$679,76</td>
+                                            </tr>*@
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="col-lg-4 col-sm-5">
+
+                            </div>
+
+                            <div class="col-lg-4 col-sm-5 ">
+                                <table class="table table-clear">
+                                    <tbody id="DisplayCharge">
+                                        <tr>
+                                            <td class="left">
+                                                <strong>Delivery Charge</strong>
+                                            </td>
+                                            <td class="right"><input type="text" class="form-control" onchange="OnchangeQtyAmt(this)" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" /> * <span id="CountQuentity">0</span> </td>
+                                        </tr>
+
+                                        @*<tr>
+                                                <td class="left">
+                                                    <strong>Net Delivery Charge </strong>
+                                                </td>
+                                                <td class="right">$8.497,00</td>
+                                            </tr>*@
+
+                                        <tr>
+                                            <td class="left">
+                                                <strong>Net Receiable</strong>
+                                            </td>
+                                            <td class="right"><span id="NetReceiable">0</span></td>
+                                        </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*</div>*@
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="return confirm('Are you sure close this inventory');">Close Inventory</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+@*<div class="modal fade" id="PaymodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Payment Mode</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="itemvalue" />
+                    <div class="form-horizontal">
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <label>Select paymode</label>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-control ShapeFields" id="paymodeselect" onchange="paymodeonchange()">
+                                    <option value="0">Select Pay Mode</option>
+                                    <option value="Cod">Cod</option>
+                                    <option value="Paytm">Paytm</option>
+                                    <option value="PhonePe">Phone Pe</option>
+                                    <option value="GooglePay">Google Pay</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="paymentdivid">
+                            <div class="col-md-3">
+                                <label>Payment Id</label>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" placeholder="Enter Payment Id" class="form-control ShapeFields" id="paymentId" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <label>Remark Payment</label>
+                            </div>
+                            <div class="col-md-3">
+                                <textarea class="form-control ShapeFields" id="RemarkPayment"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary ShapeFields" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary ShapeFields" onclick="SubmitPaymode()"><i class="fa fa-save"></i> Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>*@

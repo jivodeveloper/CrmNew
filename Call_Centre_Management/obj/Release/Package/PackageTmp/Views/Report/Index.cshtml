@@ -1,0 +1,56 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Scripts/_Common.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        SearchingwithPagination('#EmployeeTableList');
+    });
+</script>
+
+<h3>Report</h3>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="table-responsive">
+            @{if (Convert.ToString(Session["View"]) == "true")
+                {
+                    <table id="EmployeeTableList" class="table">
+                        <thead>
+                            <tr class="info" style="cursor:pointer;">
+                                <th>Call Center SKU</th>
+                                <th>SAP SKU</th>
+                                <th>Quantity</th>
+                                <th>Call Center SKU Price</th>
+                                <th>SAP SKU Price</th>
+                                <th>Mismatch</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ViewBag.get_item != null)
+                            {
+                                foreach (var GetData in ViewBag.get_item)
+                                {
+                                if (@GetData.Active == 1) {
+                                    <tr>
+                                <td>(@GetData.id) . @GetData.item_name </td>
+                                <td>@GetData.category </td>
+                                <td>@GetData.UOM_value </td>
+                                <td>@GetData.rate </td>
+                                <td>@GetData.Scheme_values </td>
+                                <td>@GetData.scheme_qty </td>
+                            </tr>}
+                                    
+                                }
+                            }
+
+                        </tbody>
+                    </table>
+                } }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,723 @@
+﻿
+@{
+    ViewBag.Title = "Area Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Scripts/_Common.js"></script>
+<script type="text/javascript">
+    //Add by lucky
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        SearchingwithPagination('#AreaTableList')
+        SearchingwithPagination('#ZoneTableList')
+        SearchingwithPagination('#StateTableList')
+        //State Buttons and msg tag
+        $("#EditState").hide();
+        $("#StateSubmit").show();
+        $("#msgState").show();
+        //End
+
+        $("#EditZone").hide();
+        $("#SumitZone").show();
+        $("#msgZone").show();
+
+
+        $('a[data-toggle="pill"]').on('show.bs.tab', function (e) {
+            localStorage.setItem('activeTab', $(e.target).attr('href'));
+        });
+        var activeTab = localStorage.getItem('activeTab');
+        if (activeTab) {
+            $('#myTab a[href="' + activeTab + '"]').tab('show');
+        }
+    });
+    //End
+
+    function RoleSubmit() {
+        var Values = {};
+        Values.RoleName = $('#AddRole').val();
+
+
+        if (Values.RoleName.length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Login/InsertRole",
+                method: "POSt",
+                data: { model: Values },
+                success: function (Result) {
+                    if (Result == "True") {
+                        alert("Record Sucessfully Saved.");
+                        //$('#msg').html("<div class='alert alert-success alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Success!</strong> Record Sucessfully Saved.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                        $('#AddRole').val('');
+                    }
+                    else {
+                        alert("Record Is Already Exists Please Try Again.");
+                        //$('#msg').html("<div class='alert alert-danger alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Sorry!</strong> Record Is Already Exists Please Try Again.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                    }
+
+                }
+            });
+        }
+        else {
+            $('#msg').html("<span style='color: red'>Please Enter Role Name.</span>");
+        }
+    }
+
+    function Delete(id) {
+
+
+        var x = confirm("Are you sure you want to Active/Deactive Area ?");
+        if (x) {
+            $.ajax({
+                url: "/Area/delete_area",
+                method: "Post",
+                data: { id: id },
+                success: function (data) {
+                    alert("Successfully Active/Deactive Area");
+                    //ShowMessage("Successfully Deleted", 'warning');
+                    location.reload();
+                }
+            })
+        }
+
+        //$('#reactivebtn').hide();
+    }
+
+    //Add By Lucky
+    //Add State Functionality
+    function StateSubmit() {
+        var EditStateValues = {};
+        EditStateValues.StateName = $('#Txtstate').val();
+        if (EditStateValues.StateName.length > 0) {
+            $.ajax({
+                url: "/Area/InsertState",
+                method: "Post",
+                data: { model: EditStateValues },
+                success: function (Result) {
+                    if (Result == "True") {
+                        alert("Record Sucessfully Saved.");
+                        location.reload();
+                        $('#Txtstate').val('');
+                    }
+                    else {
+                        alert("Record Is Already Exists Please Try Again.");
+                        $('#Txtstate').val('');
+                        $('#msgState').hide();
+                    }
+                }
+            });
+        }
+        else {
+            $('#msgState').html("<span style='color: red'>Please Enter State Name.</span>");
+        }
+    };
+    function StateUpdate(SId, Statename) {
+
+        $('#msgState').hide();
+        $("#EditState").show();
+        $("#SumitState").hide();
+
+        $('#Txtstate').val(Statename);
+        $('#EditStateId').val(SId);
+        $("#Txtstate").css("border", "2px solid green");
+
+        $('#Txtstate').focus();
+
+        $("#EditState").click(function () {
+            var EditStateValues = {};
+            EditStateValues.StateName = $('#Txtstate').val();
+            EditStateValues.Id = $('#EditStateId').val();
+            if (EditStateValues.Id > 0 && EditStateValues.StateName.length > 0) {
+                $.ajax({
+                    url: "/Area/UpdateState",
+                    method: "Post",
+                    data: { model: EditStateValues },
+                    success: function (Result) {
+                        if (Result == true) {
+                            alert("Record Sucessfully Updated.");
+                            location.reload();
+                            $('#Txtstate').val('');
+
+                            $("#EditState").hide();
+                            $("#SumitState").show();
+                            $('#msgState').hide();
+                            $("Txtstate").css("border", "1px solid black");
+                        }
+                        else if (Result == false) {
+                            $('#msgState').hide();
+                            alert("Please Try Again");
+                            $("Txtstate").css("border", "1px solid black");
+                        }
+                        //else if (Result == 1) {
+                        //    $('#msgState').hide();
+                        //    alert("Role Is Activated");
+                        //}
+                        //else if (Result == 2) {
+                        //    $('#msgState').hide();
+                        //    alert("Role Is DisActivated");
+                        //}
+                        else if (Result == 3) {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+            else {
+                $('#msgState').show();
+                $('#msgState').html("<span style='color: red'>Please Enter State Name.</span>");
+            }
+
+        });
+    }
+    function StateActive_Deactive(Id) {
+        var StateActiveValues = {};
+        StateActiveValues.Id = Id;
+
+        if (StateActiveValues.Id > 0) {
+            var alertmsg = confirm("Are you Sure You Want change Mode");
+            if (alertmsg == true) {
+                $.ajax({
+                    url: "/Area/UpdateState",
+                    method: "Post",
+                    data: { model: StateActiveValues },
+                    success: function (Result) {
+                        if (Result == 1) {
+                            alert("State Is Activated");
+                            location.reload();
+                        }
+                        else if (Result == 2) {
+                            alert("State Is DeActivated");
+                            location.reload();
+                        }
+                        else if (Result == 3) {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+        else {
+            $('#msgState').hide();
+            alert("Please Try Again");
+        }
+    }
+    //End
+
+    //Add Zone Functionality
+    function ZoneSubmit() {
+        var ZoneValue = {};
+        ZoneValue.StateId = $("#ZoneSelect").val();
+        ZoneValue.ZoneName = $("#TxtZone").val();
+
+        if (ZoneValue.StateId == 0) { $('#msgZone').html("<span style='color: red'>Please Select State.</span>"); }
+        else if (ZoneValue.ZoneName.length == 0) { $('#msgZone').html("<span style='color: red'>Please Enter Zone Name.</span>"); }
+        else if (ZoneValue.StateId > 0 && ZoneValue.ZoneName.length > 0) {
+            $.ajax
+                ({
+                    url: "/Area/InsertZoneDetails",
+                    method: "post",
+                    data: { modal: ZoneValue },
+                    success: function (Result) {
+                        if (Result == true) {
+                            alert("Record Sucessfully Saved");
+                            location.reload();
+                        }
+                        else {
+                            alert("oops Something Wrong Please Try Again");
+                        }
+                    }
+                });
+        }
+    }
+    function ZoneUpdate(Id, StateId, ZoneName) {
+
+
+        $("#EditZone").show();
+        $("#SumitZone").hide();
+
+        $("#EditZoneId").val(Id);
+        $("#ZoneSelect").val(StateId);
+        $("#TxtZone").val(ZoneName);
+
+        $("#TxtZone").focus();
+
+        $("#TxtZone").css("border", "2px solid green");
+
+        $("#EditZone").click(function () {
+            var EditZone = {};
+            EditZone.Id = $("#EditZoneId").val();
+            EditZone.StateId = $("#ZoneSelect").val();
+            EditZone.ZoneName = $("#TxtZone").val();
+            if (EditZone.Id == 0) { alert("Oops Somthing Wrong Please Try Again"); }
+            else if (EditZone.StateId == 0) { $('#msgZone').html("<span style='color: red'>Please Select State.</span>"); }
+            else if (EditZone.ZoneName.length == 0) { $('#msgZone').html("<span style='color: red'>Please Enter Zone Name.</span>"); }
+            else if (EditZone.Id > 0 && EditZone.StateId > 0 && EditZone.ZoneName.length > 0) {
+
+                $.ajax({
+                    url: "/Area/UpdateZone",
+                    method: "post",
+                    data: { model: EditZone },
+                    success: function (Result) {
+                        if (Result == true) {
+                            alert("Record Sucessfully Updated");
+                            location.reload();
+                            $('#TxtZone').css("border", "1px solid black");
+                        }
+                        else {
+                            alert("oops Something Wrong Please Try Again");
+                            $('#msgZone').val('');
+                            $('#TxtZone').css("border", "1px solid black");
+                        }
+                    }
+                });
+
+            }
+        });
+    }
+    function ZoneActive_Deactive(Id) {
+        var ZoneActiveValues = {};
+        ZoneActiveValues.Id = Id;
+        if (ZoneActiveValues.Id > 0) {
+            var alertmsg = confirm("Are you Sure You Want change Mode");
+            if (alertmsg == true) {
+                $.ajax({
+                    url: "/Area/UpdateZone",
+                    method: "Post",
+                    data: { model: ZoneActiveValues },
+                    success: function (Result) {
+                        if (Result == 1) {
+                            // alert("Zone Is Activated");
+                            location.reload();
+                            $('#Zone').focus();
+                        }
+                        else if (Result == 2) {
+                            alert("Zone Is DeActivated");
+                            location.reload();
+
+                            $('#Zone').focus();
+                        }
+                        else if (Result == 3) {
+                            location.reload();
+
+                            $('#Zone').focus();
+                        }
+                    }
+                });
+            }
+        }
+        else {
+            $('#msgZone').hide();
+            alert("Please Try Again");
+        }
+    }
+    //End
+    //End
+
+</script>
+
+@*Add by Lucky*@
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+<div class="container col-lg-12">
+    <div class="p-3 mb-2 bg-info text-white panel-heading">
+        <!-- Nav pills -->
+        <ul class="nav nav-pills" role="tablist" id="myTab">
+            <li class="nav-item">
+                <a class="nav-link active" style="border-radius: 8px;" data-toggle="pill" href="#Area"> <h4>Add Area</h4></a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" style="border-radius: 8px;" data-toggle="pill" href="#Zone"><h4>Add Zone</h4></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" style="border-radius: 8px;" data-toggle="pill" href="#State"><h4>Add State</h4></a>
+            </li>
+        </ul>
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div id="Area" class="container tab-pane active col-lg-12">
+                <br>
+
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="form-group">
+                                        @{
+                                            if (Convert.ToString(Session["View"]) == "true")
+                                            {
+                                                <div class="col-lg-2">
+                                                    @*Area  &nbsp; &nbsp; <input id="deleted" name="deleted" type="checkbox" onclick="checking(this);"> DE-ACTIVATED*@
+                                                    @*<h5><b>Total Activate Record : </b> <span class="badge badge-light">@ViewBag.AreaTotalCount</span></h5>*@
+                                                    <h2 class="btn btn-primary ButtonShape">Total Record : <span class="badge badge-light" style="background-color:white;color:Highlight;">@ViewBag.AreaTotalCount</span></h2>
+                                                </div>
+                                            }
+                                        }
+                                        <br />
+                                        <div class="col-lg-offset-8 col-lg-2">
+                                            @{if (Convert.ToString(Session["Insert"]) == "true")
+                                                {
+                                                    @*<a href="~/Area/Insert_area">  <input type="button" value="Add New" class="btn btn-info" /></a>*@
+                                                    <a href="~/Area/Insert_area" class="btn btn-info ButtonShape">
+                                                        <i class="fa fa-area-chart"></i> Add New Area
+                                                    </a>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                   <div class="row">
+                    <div class="col-lg-12">
+                        <div class="table-responsive">
+                            @{
+                                if (Convert.ToString(Session["View"]) == "true")
+                                {
+                                    <table id="AreaTableList" class="table">
+                                        <thead>
+                                            <tr class="info" style="cursor:pointer;">
+                                                <th>ID</th>
+                                                <th>Area Name </th>
+                                                <th>Zone Name</th>
+                                                <th>State Name</th>
+                                                <th>Pincode</th>
+                                                <th>Active</th>
+                                                <!--<th>Security</th>--> @*here*@
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var GetData in ViewBag.list_Area)
+                                            {
+
+                                                <tr>
+                                                    <td>@GetData.id </td>
+                                                    <td>@GetData.Area_Name  </td>
+                                                    <td>@GetData.Zone_id </td>
+                                                    <td>@GetData.State_id </td>
+                                                    <td>@GetData.pincode </td>
+                                                    <td>
+                                                        @{
+                                                            if (GetData.active == true)
+                                                            {
+                                                                <span style="color:green">Active</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span style="color:red">Deactive</span>
+                                                            }
+                                                        }
+
+                                                    </td>
+                                                    <td>
+                                                        @{
+                                                            if (Session["Edit"].ToString() == "true")
+                                                            {
+                                                                @*<a value='Edit' class='btn btn-sm btn-info' href='Edit/@GetData.id'>Edit</a>*@
+                                                                <a href='Edit/@GetData.id' title="Edit"><i class='fa fa-edit fa-2x'></i></a>
+                                                            }
+                                                        }
+                                                        @{
+                                                            if (Session["Delete"].ToString() == "true")
+                                                            {
+                                                                @*<input type='button' value='Deactive' id="Deactive" class='btn btn-sm btn-info' onclick="Delete('@GetData.id')" />*@
+                                                                <a onclick="Delete('@GetData.id')" title="Active And Deactive"><i class='fa fa-ban fa-2x'></i></a>
+                                                            }
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+
+                                        </tbody>
+
+                                    </table>
+                                }
+
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @*<div class="container">
+                        <ul class="pagination">
+                            <li><a href="#">1</a></li>
+                            <li class="active"><a href="#">2</a></li>
+                            <li><a href="#">3</a></li>
+                            <li><a href="#">4</a></li>
+                            <li><a href="#">5</a></li>
+                        </ul>
+                    </div>*@
+
+
+            </div>
+
+            <div id="State" class="container tab-pane fade col-lg-12">
+                <br>
+                <div class="panel panel-info panelmargin">
+                    <input type="hidden" id="EditStateId" />
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Add State</h3>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-horizontal">
+                                <div class="col-lg-6">
+                                    <input type="text" id="Txtstate" autofocus="autofocus" class="form-control ShapeFields" placeholder="Enter State Name" />
+                                    <span id="msgState"></span>
+                                </div>
+                                <div class="col-lg-6">
+                                    @{if (Convert.ToString(Session["View"]) == "true")
+                                        {
+                                            @*<input id="SumitState" type="button" value="Submit" class="btn btn-info" onclick="StateSubmit()" />*@
+                                            <a id="SumitState" class="btn btn-info ButtonShape" onclick="StateSubmit()">
+                                                <i class="fa fa-save"></i>  Submit
+                                            </a>
+                                        }
+                                    }
+
+
+
+                                    @{if (Convert.ToString(Session["Edit"]) == "true")
+                                        {
+
+                                            <a id="EditState" class="btn btn-info ButtonShape">
+                                                <i class="fa fa-edit"></i>  Update
+                                            </a>
+
+                                            @*<input id="EditState" type="button" value="Update" class="btn btn-info" />*@
+                                        } }
+
+                                    <a class="btn btn-m btn-info ButtonShape" onclick="location.reload();">
+                                        <i class="fa fa-refresh"></i> Clear
+                                    </a>
+                                </div>
+                                <br />  <br />  <br />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                @{if (Convert.ToString(Session["View"]) == "true")
+                    {
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="panel panel-info">
+                                    <div class="panel-heading">
+                                        <h2 class="btn btn-primary ButtonShape">Total Record : <span class="badge badge-light" style="background-color:white;color:Highlight;">@ViewBag.StateTotalCount</span></h2>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table id="StateTableList" class="table">
+                                        <thead>
+                                            <tr class="info" style="cursor:pointer;">
+                                                <th>ID</th>
+                                                <th>State Name</th>
+                                                <th>Active</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var GetStateData in ViewBag.GetStateList)
+                                            {
+                                                <tr>
+                                                    <td>@GetStateData.Id  </td>
+                                                    <td>@GetStateData.StateName  </td>
+
+                                                    <td>
+                                                        @{
+                                                            if (GetStateData.Active == "True")
+                                                            {
+                                                                <span style="color:green">Active</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span style="color:red">Deactive</span>
+
+                                                            }
+
+                                                        }
+
+                                                    </td>
+
+                                                    <td>
+                                                        @{
+                                                            if (Convert.ToString(Session["Edit"]) == "true")
+                                                            {
+                                                                @*<input type='button' value='Edit' class='btn btn-sm btn-info' onclick="StateUpdate('@GetStateData.Id','@GetStateData.StateName')" />*@
+                                                                <a onclick="StateUpdate('@GetStateData.Id','@GetStateData.StateName')" title="Edit"><i class='fa fa-edit fa-2x'></i></a>
+                                                            }
+                                                        }
+                                                        @{
+                                                            if (Convert.ToString(Session["Delete"]) == "true")
+                                                            {
+                                                                @*<input type='button' value='Active/Deactive' class='btn btn-sm btn-info' onclick="StateActive_Deactive('@GetStateData.Id')" />*@
+                                                                <a onclick="StateActive_Deactive('@GetStateData.Id')" title="Active And Deactive"><i class='fa fa-ban fa-2x'></i></a>
+                                                            }
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div id="Zone" class="container tab-pane fade col-lg-12">
+                <br>
+                <div class="panel panel-info panelmargin">
+                    <input type="hidden" id="EditZoneId" />
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Add Zone</h3>
+                    </div>
+                    <br />
+                    <span id="msgZone"></span>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-horizontal">
+                                <div class="col-lg-2">
+                                    @{if (Convert.ToString(Session["View"]) == "true")
+                                        {
+                                            <select id="ZoneSelect" class="btn btn-default ShapeFields" style="height:33px;">
+                                                <option value="0" selected="selected">--Select State--</option>
+                                                @{
+                                                    foreach (var Getstate in ViewBag.DropListState)
+                                                    {
+                                                        <option value="@Getstate.Id">@Getstate.DropName</option>
+                                                    }
+                                                }
+                                            </select>
+                                        }
+                                    }
+                                </div>
+                                <div class="col-lg-offset-1 col-lg-4">
+                                    <input type="text" id="TxtZone" autofocus="autofocus" class="form-control ShapeFields" placeholder="Enter State Name" />
+                                </div>
+                                <div class="col-lg-4">
+                                    @{
+                                        if (Convert.ToString(Session["Delete"]) == "true")
+                                        {
+                                            @*<input id="SumitZone" type="button" value="Submit" class="btn btn-info" onclick="ZoneSubmit()" />*@
+                                            <a id="SumitZone" class="btn btn-info ButtonShape" onclick="ZoneSubmit()">
+                                                <i class="fa fa-save"></i>  Submit
+                                            </a>
+                                        }
+                                    }
+
+                                    @{
+                                        if (Convert.ToString(Session["Edit"]) == "true")
+                                        {
+                                            @*<input id="EditZone" type="button" value="Update" class="btn btn-info" />*@
+                                            <a id="EditZone" class="btn btn-info ButtonShape">
+                                                <i class="fa fa-edit"></i>  Update
+                                            </a>
+                                        }
+                                    }
+
+                                    <a class="btn btn-info ButtonShape" onclick="location.reload();">
+                                        <i class="fa fa-refresh"></i> Clear
+                                    </a>
+                                </div>
+                                <br />  <br />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                @{if (Convert.ToString(Session["View"]) == "true")
+                    {
+                       
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="panel panel-info">
+                                    <div class="panel-heading">
+                                        <h2 class="btn btn-primary ButtonShape">Total Record : <span class="badge badge-light" style="background-color:white;color:Highlight;">@ViewBag.ZoneTotalCount</span></h2>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table id="ZoneTableList" class="table">
+                                        <thead>
+                                            <tr class="info" style="cursor:pointer;">
+
+                                                <th>ID</th>
+                                                <th>Zone Name</th>
+                                                <th>State Name</th>
+                                                <th>Active</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var GetZoneData in ViewBag.GetZoneList)
+                                            {
+                                                <tr>
+                                                    <td>@GetZoneData.Id  </td>
+
+                                                    <td>@GetZoneData.ZoneName  </td>
+
+                                                    <td>@GetZoneData.StateName  </td>
+
+                                                    <td>
+                                                        @{
+                                                            if (GetZoneData.Active == "True")
+                                                            {
+                                                                <span style="color:green">Active</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span style="color:red">Deactive</span>
+
+                                                            }
+
+                                                        }
+                                                    </td>
+
+                                                    <td>
+                                                        @*<input type='button' value='Edit' class='btn btn-sm btn-info' onclick="ZoneUpdate('@GetZoneData.Id','@GetZoneData.StateId','@GetZoneData.ZoneName')" />*@
+
+                                                        @{
+                                                            if (Convert.ToString(Session["Edit"]) == "true")
+                                                            {
+                                                                <a onclick="ZoneUpdate('@GetZoneData.Id','@GetZoneData.StateId','@GetZoneData.ZoneName')" title="Edit"><i class='fa fa-edit fa-2x'></i></a>
+                                                            }
+                                                        }
+                                                        @{
+                                                            if (Convert.ToString(Session["Delete"]) == "true")
+                                                            {
+                                                                @*<input type='button' value='Active/Deactive' class='btn btn-sm btn-info' onclick="ZoneActive_Deactive('@GetZoneData.Id')" />*@
+                                                                <a onclick="ZoneActive_Deactive('@GetZoneData.Id')" title="Active And Deactive"><i class='fa fa-ban fa-2x'></i></a>
+                                                            }
+
+                                                        }
+
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@*End*@

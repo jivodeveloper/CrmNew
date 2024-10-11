@@ -1,0 +1,194 @@
+﻿
+@{
+    ViewBag.Title = "orderExport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+    });
+
+    function Search_Order() {
+        var StartDate = $('#txtTodate').val();
+        var EndDate = $('#txtFromdate').val();
+
+        if ($('#txtFromdate').val() === "" && $('#txtTodate').val() === "") {
+            return alert('Fill Proper Date');
+        }
+        $('#loading').show();
+        $.ajax({
+            url: "/OrderViewDetails/orderExport",
+            method: "POSt",
+            data: { StartDate: StartDate, EndDate: EndDate },
+            success: function (data) {
+                $('#loading').fadeOut();
+                $('#ItemsCount').html(data.length);
+                var table = $('#orderTable').addClass("table");
+                table.empty();
+                var header = ' <thead>' +
+                    '<tr class="info" style="cursor:pointer;">' +
+                    '<th>Caller</th>' +
+                    '<th>Date</th>' +
+                    '<th>OrderFrom</th>' +
+                    '<th>CustomerName</th>' +
+                    '<th>Number</th>' +
+                    '<th>HouseNumber</th>' +
+                    '<th>Area</th>' +
+                    '<th>Zone</th>' +
+                    '<th>Pincode</th>' +
+                    '<th>OrderQty</th>' +
+                    '<th>Amount</th>' +
+                    '<th>Coupon</th>' +
+                    '<th>PaymentMode</th>' +
+                    '<th>Remarks</th>' +
+                    '</tr >' +
+                    '</thead>'
+                table.append(header);
+
+                for (var i = 0; i < data.length; i++) {
+                    var val = '<tbody>' + '<tr>' +
+                        '<td>' + data[i]["Caller"] + '</td>' +
+                        '<td>' + data[i]["Date"] + '</td>' +
+                        '<td>' + data[i]["OrderFrom"] + '</td>' +
+                        '<td>' + data[i]["CustomerName"] + '</td>' +
+                        '<td>' + data[i]["Number"] + '</td>' +
+                        '<td>' + data[i]["HouseNumber"] + '</td>' +
+                        '<td>' + data[i]["Area"] + '</td>' +
+                        '<td>' + data[i]["Zone"] + '</td>' +
+                        '<td>' + data[i]["Pincode"] + '</td>' +
+                        '<td>' + data[i]["OrderQty"] + '</td>' +
+                        '<td>' + data[i]["Amount"] + '</td>' +
+                        '<td>' + data[i]["Coupon"] + '</td>' +
+                        '<td>' + data[i]["PaymentMode"] + '</td>' +
+                        '<td>' + data[i]["Remarks"] + '</td>' +
+                        '</tr>' + '</table>'
+                    table.append(val);
+                }
+
+                //}
+                //else {
+                //    return alert('Data Not Available');
+                //}
+            },
+            error: function () {
+                $('#loader').hide();
+                ShowMessage("ERROR", "error");
+            }
+        });
+
+    }
+
+    function checkValidation() {
+       
+        var StartDate = $('#txtTodate').val();
+        var EndDate = $('#txtFromdate').val();
+
+        if ($('#txtFromdate').val() === "" && $('#txtTodate').val() === "") {
+            return alert('!! Fill Proper Date');
+        }
+
+        if ($('#orderTable tr').length === 0 || $('#orderTable tr').length === 1) //|| $('#orderTable').empty())
+        {
+            return alert('!! Table is Empty');
+        }
+
+        else {
+            $('#loading').show(); 
+            window.location.href = "/OrderViewDetails/exportExel"
+            $('#loading').fadeOut();
+
+        }
+    }
+
+
+    //$('#orderTable').paging({
+
+    //    limit: 5,
+    //    rowDisplayStyle: 'block',
+    //    activePage: 0,
+    //    rows: []
+
+    //});
+
+</script>
+ 
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+<div class="panel-info">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        <div class="col-lg-3">
+                            <label style="margin-right:10px; font-size:20px;"><b> To Date : </b></label>
+                            <input id="txtTodate" type="date" class="ShapeFields"  />
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label style="margin-right:10px; font-size:20px;"><b> From Date : </b></label>
+                            <input id="txtFromdate" type="date" class="ShapeFields"/>
+                        </div>
+
+                        <div class="col-lg-3">
+                            @{
+                                if (Convert.ToString(Session["View"]) == "true")
+                                {
+
+                                    @*<input id="btnSubmit" type="submit" value="Submit" class="btn btn-primary" onclick="Search_Order()" />*@
+                                    @*<a id="btnSubmit" class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="Search_Order()">
+                    <i class="fa fa-search"></i> Find Record
+                </a>*@
+
+                                    <button id="btnSubmit" class="btn btn-primary ButtonShape" onclick="Search_Order()">  <i class="fa fa-search"></i> Find Record</button>
+
+                                    @*<input id="btnSubmit" type="submit" value="Clear" class="btn btn-primary" onclick="location.reload()" />*@
+                                    @*<a id="btnSubmit" class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="location.reload()">
+                                        <i class="fa fa-search"></i> Clear
+                                    </a>*@
+
+                                    <button id="btnSubmit" class="btn btn-primary ButtonShape" onclick="location.reload()">  <i class="fa fa-search"></i> Clear</button>
+                                } }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="form-group">
+            <div class="col-lg-10">
+                <h2 class="btn btn-primary ShapeFields">Total Record : <span id="ItemsCount" class="badge badge-light">0</span></h2> @*class="btn btn-primary"  class="badge badge-light"*@
+            </div>
+            <br />
+            <div class="col-lg-2">
+                <button class="btn btn-primary ButtonShape" onclick="checkValidation()">  <i class="fa fa-download"></i> Export Excel</button>
+                @*<a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="checkValidation()">
+                    <i class="fa fa-download"></i> Export Excel
+                </a>*@
+            </div>
+        </div>
+        <br />
+        <br />
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="table-responsive">
+            @{
+                if (Convert.ToBoolean(Session["View"]) == true)
+                {
+                    <table id="orderTable" class="table"></table>
+                }
+            }
+        </div>
+    </div>
+</div>

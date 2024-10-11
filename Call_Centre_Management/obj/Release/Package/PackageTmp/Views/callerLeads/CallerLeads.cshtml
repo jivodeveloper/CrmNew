@@ -1,0 +1,2572 @@
+﻿
+@{
+    ViewBag.Title = "CallerLeads";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*<h2 style="margin-left:76%"> @Convert.ToString(Session["user_name"]) Leads </h2>*@
+
+<link href="~/Content/css/CommonCss/Master.css" rel="stylesheet" />
+
+<style type="text/css">
+
+    .c {
+        position: absolute;
+        right: 0;
+        width: 400px;
+        height: 60%;
+        margin-top: 5%;
+        /*border: 2px solid black;*/
+    }
+
+    .d {
+        position: absolute;
+        /*left: 200;*/
+        width: 300px;
+        height: 100%;
+        top: 60px;
+        /*border: 2px solid black;*/
+    }
+
+    .button {
+        display: inline-block;
+        padding: 0px 25px;
+        font-size: 35px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: #fff;
+        background-color: #3c8dbc;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 9px #999;
+    }
+
+        .button:hover {
+            background-color: #3e8e41
+        }
+
+        .button:active {
+            background-color: #3e8e41;
+            box-shadow: 0 5px #666;
+            transform: translateY(4px);
+        }
+
+
+    div.sticky {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+        /*background-color: yellow;*/
+        padding: 50px;
+        font-size: 20px;
+    }
+
+    .txtbox {
+        width: 100%;
+        padding: 5px 5px;
+        margin: 2px 0;
+    }
+</style>
+
+<script type="text/javascript">
+
+    var globalid = 0;
+    var count = 0;
+    var GetRate = 0;
+    var timer;
+    var finalStr;
+
+    $(document).ready(function () {
+        checkBreak();
+        fetchLeadData();
+        StartTimerOnload("Hold");
+        PopUpfix();
+    });
+
+    function PopUpfix() {
+        $("#popup").modal({
+            show: false,
+            backdrop: 'static'
+        });
+
+        $("#IncomingCallsModal").modal({
+            show: false,
+            backdrop: 'static'
+        });
+
+        $("#ExistisngCustomerDiv").hide();
+        $("#ReferenceDiv").hide();
+    }
+
+    function checkBreak() {
+
+        $.ajax({
+            url: "/CallerLeads/checkBreak",
+            method: "Get",
+            success: function (data) {
+                if (data == true) {
+                    Stop();
+                    //StopCounter();
+                    clearInterval(timer);
+                    $("#RadioBreak").attr("checked", true);
+                }
+            }
+        });
+    }
+    //Stopwatcher timer
+    var prevTime, stopwatchInterval, elapsedTime = 0;
+    var updateTime = function (GetEvent) {
+        var tempTime = elapsedTime;
+        var milliseconds = tempTime % 1000;
+        tempTime = Math.floor(tempTime / 1000);
+        var seconds = tempTime % 60;
+        tempTime = Math.floor(tempTime / 60);
+        var minutes = tempTime % 60;
+        tempTime = Math.floor(tempTime / 60);
+        var hours = tempTime % 60;
+        if (seconds < 10) { seconds = "0" + seconds; }
+        if (minutes < 10) { minutes = "0" + minutes; }
+        if (hours < 10) { hours = "0" + hours; }
+
+        if (GetEvent == "Hold") {
+            $("#Endhours").text(hours) + " : " + $("#Endminutes").text(minutes) + " : " + $("#Endseconds").text(seconds);
+        }
+        $("#hours").text(hours) + " : " + $("#minutes").text(minutes) + " : " + $("#seconds").text(seconds) + "." + $("#milliseconds").text(milliseconds);
+    };
+
+    function StartTimerOnload(GetEvent) {
+        if (!stopwatchInterval) {
+            stopwatchInterval = setInterval(function () {
+                if (!prevTime) {
+                    prevTime = Date.now();
+                }
+
+                elapsedTime += Date.now() - prevTime;
+                prevTime = Date.now();
+
+                updateTime(GetEvent);
+            }, 50);
+        }
+    };
+
+    function Stop() {
+        if ($("#pauseButton").html() == "Hold") {
+            if (stopwatchInterval) {
+                clearInterval(stopwatchInterval);
+                stopwatchInterval = null;
+                //StartTimerPopup();
+                StartTimerOnload("Hold");
+            }
+
+            $('#counter').html(0);
+            $("#popup").modal("show");
+            var hour = $("#hours").text();
+            var minutes = $("#minutes").text();
+            var seconds = $("#seconds").text();
+            // $("#Gethours").html(hour) + " : " + $("#Getminutes").html(minutes) + " : " + $("#Getseconds").html(seconds);
+            Counter();
+            prevTime = null;
+        }
+    };
+    //Emd
+
+    function focusOnpayModeDD() {
+        $("#dd_PaymentMode").focus();
+    }
+
+    function fetch_customerdetails1(i) {
+        //i = '9540002111';
+        $.ajax({
+            url: "/Order/check_user",
+            method: "Post",
+            //data: { mobilenumber: i },
+            data: { mobilenumber: i },
+            success: function (Result) {
+                    var number = 1
+                    $('#tblCustAddress').empty();
+                    $('#tblCustAddress').append('<tr><td> Name - ' + Result.Result.name + '</td ></tr >');
+                    $('#tblCustAddress').append('<tr><td>' + Result.Result.Address + ' - ' + Result.Result.pincode + '</td ></tr >');
+                    if (Result.Result.CustOldItems.length > 0) {
+                        $('#tblCustOldItem').empty();
+                        for (var m = 0; m < Result.Result.CustOldItems.length; m++) {
+                            number = number + m;
+                            $('#tblCustOldItem').append('<tr><td>' + number + '. ' + Result.Result.CustOldItems[m]["ItemName"] + ' Of ' + Result.Result.CustOldItems[m]["quantity"] + ' Quantity  On ' + Result.Result.CustOldItems[m]["date"] + ' is ' + Result.Result.CustOldItems[m]["Status"] + '</td ></tr >');
+                        }
+                    }
+                    else {
+                        $('#tblCustOldItem').empty();
+                        $('#tblCustOldItem').append('<tr><td>No Data Exists</td ></tr >');
+                    }
+                //else {
+                //    $('#tblCustAddress').empty();
+                //    $('#tblCustAddress').append('<tr><td><h4>No Data Exists </h4></td ></tr >');
+                //    $('#tblCustOldItem').empty();
+                //    $('#tblCustOldItem').append('<tr><td><h4>No Data Exists</h4></td ></tr >');
+                //}
+                $('#lblCustPhNoLastDetails').html('(' + Result.response + ')');
+            },
+            error: function (Result) {
+            }
+        });
+    }
+
+    function fetchLeadData() {
+        $.ajax({
+            url: "/callerLeads/fetchLeadData",
+            method: "Get",
+            //data: { mobilenumber: $('#txt_Contact').val() },
+            success: function (Result) {
+                if (Result.cust.length > 0) {
+                    fetch_customerdetails1(Result.cust[0]['cust_mobile']);
+                    $('#lblCustPhNo').html(Result.cust[0]['cust_mobile']);
+                     $('#lblCustPhNo2').html('<a href="tel://' + Result.cust[0]['cust_mobile'] + '"> Call </a>');
+                }
+
+                if (Result.cust1.length > 0) {
+
+                    $('#tblCallerLastCall').empty();
+                    var num = 0;
+                    for (var i = 0; i < Result.cust1.length; i++) {
+                        num = num + 1;
+                        $('#tblCallerLastCall').append('<tbody><tr> <td><h5>' + num + '.' + '</h5></td ><td><h5> ' + Result.cust1[i]['cust_mobile'] + ' </h5></td ><td><h5> ' + Result.cust1[i]['Source'] + ' </h5></td ></tr > </tbody>');
+                    }
+                }
+                if (Result.cust2.length > 0) {
+                    for (var i = 0; i < Result.cust2.length; i++) {
+                        $('#spanCalls').html(Result.cust2[i]['cust_mobile']);
+                    }
+                }
+                if (Result.cust3.length > 0) {
+                    for (var i = 0; i < Result.cust3.length; i++) {
+                        $('#spanOrder').html(Result.cust3[i]['cust_mobile']);
+                    }
+                }
+            }
+        });
+        updateTime(0, 0, 0, 0);
+        //GetTimer();
+    }
+
+    function addReferenseMobile(Mobile) {
+        var numer = $('#ReferenceNumber').val();
+        console.log(numer);
+
+        if ($('#ReferenceNumber').val().length > 0) {
+            var referMobile = $('#ReferenceNumber').val()
+            $.ajax({
+                url: "/callerLeads/ReferMobile",
+                method: "Post",
+                data: { Mobile: Mobile, referMobile: referMobile },
+                success: function (data) {
+                }
+            });
+        }
+    }
+
+    function getItems() {
+        $.ajax({
+            url: "/callerLeads/getItem",
+            method: "Get",
+            success: function (Result) {
+                $('#tblItem').empty();
+                $('#DisplayItem').modal('show');
+                $('#tblItem').append('< thead style = "border: 1px solid #ddd !important;" ><tr><th>Item Name</th><th>Rate</th><th>Categoty</th></tr></thead >')
+                $.each(Result, function (i, value) {
+                    $('#tblItem').append('<tr><td>' + value.item_name + '</td><td>' + value.rate + '</td><td>' + value.category + '</td></tr >');
+                });
+            }
+        });
+    }
+
+    function CallResponse(response) {
+        console.log('Callresponse');
+        var mobile = $('#lblCustPhNo').html();
+        var remark = $('#txt_CallRemark').val();
+        var DateTime = $('#txt_followup').val();
+        var callHour = $("#hours").text();
+        var callMinutes = $("#minutes").text();
+        var callSeconds = $("#seconds").text();
+        $.ajax({
+            url: "/callerLeads/Response",
+            method: "Post",
+            data: { Respons: response, mobile: $('#lblCustPhNo').html(), followUpDate: DateTime, remark: remark, callHour: callHour, callMinutes: callMinutes, callSeconds: callSeconds },
+            success: function (Result) {
+                if (Result == -1) {
+                    return alert('You Cross Your 200 Calls Limit');
+                }
+                else {
+                    fetchLeadData();
+                    elapsedTime = 0;
+                    StartTimerOnload("Hold");
+                    $('#txt_CallRemark').val('');
+                    $('#txt_followup').val('');
+                }
+                //location.reload();
+            }
+        });
+
+    }
+
+    function DNDMobile() {
+        var mobile = $('#lblCustPhNo').html();
+        $.ajax({
+            url: "/callerLeads/DndMobile",
+            method: "Get",
+            data: { mobile: mobile },
+            success: function (data) {
+
+            }
+        });
+    }
+
+    //function GetTimer() {
+    //    setInterval(function () {
+
+    //        var currentTime = new Date();
+    //        var hours = currentTime.getHours();
+    //        var minutes = currentTime.getMinutes();
+    //        var seconds = currentTime.getSeconds();
+    //        var newformat = hours >= 12 ? 'PM' : 'AM';
+    //        // Find current hour in AM-PM Format
+    //        hours = hours % 12;
+    //        // To display "0" as "12"
+    //        hours = hours ? hours : 12
+    //        hours = hours < 10 ? "0" + hours : hours;
+
+    //        //// Add leading zeros
+    //        //hours = (hours < 10 ? "0" : "") + hours;
+    //        minutes = (minutes < 10 ? "0" : "") + minutes;
+    //        seconds = (seconds < 10 ? "0" : "") + seconds;
+
+    //        // Compose the string for display
+    //        var currentTimeString = hours + ":" + minutes + ":" + seconds + ' ' + newformat;
+    //        $(".clock").html(currentTimeString);
+
+    //    }, 1000);
+    //}
+
+    function orderPopup() {
+        //var mobile = $('#lblCustPhNo').html();
+        $('#txt_Contact').val($('#lblCustPhNo').html());
+        fetch_customerdetails(),
+            $("#DisplayOrder").modal("show");
+    }
+
+    function popup2() {
+        $("#DisplayOrder2").modal("show");
+    }
+
+    function Locationtab() {
+        // $('#dd_State').focus();
+        $('#myModalLocation').modal();
+        $('.modal').on('shown.bs.modal', function () {
+            //$(this).find("select:first").focus();
+            $(this).find('textarea:visible:first').focus();
+        });
+    }
+
+    function Itemtabs() {
+
+        $('#myModal').modal();
+        $('.modal').on('shown.bs.modal', function () {
+            //$(this).find("select:first").focus();
+            $(this).find('input:text:visible:first').focus();
+        });
+
+    }
+
+    function fetchAddress() {
+
+        var Pincode = $('#txt_pincode').val()
+
+        $.ajax
+            ({
+                url: "/Order/getLocationOnPin",
+                method: "Post",
+                data: { Pincode: Pincode },
+                success: function (Result) {
+                    $('#dd_Area').empty();
+
+                    if (Result.length > 0) {
+
+                        for (var i = 0; i < Result.length; i++) {
+                            $('#dd_Area').append('<option value=' + Result[i]["AreaId"] + '>' + Result[i]["AreaName"] + '</option>');
+                        }
+                        if (Result.length === 1) {
+                            fetchZoneState();
+                        }
+                    }
+                    else {
+                        return alert("!! No Data Exists");
+                    }
+                }
+            })
+
+    }
+
+    function fetchAddress2(Pincode) {
+        $.ajax
+            ({
+                url: "/Order/getLocationOnPin",
+                method: "Post",
+                data: { Pincode: Pincode },
+                success: function (Result) {
+                    $('#dd_Area').empty();
+
+                    if (Result.length > 0) {
+
+                        for (var i = 0; i < Result.length; i++) {
+                            $('#dd_Area').append('<option value=' + Result[i]["AreaId"] + '>' + Result[i]["AreaName"] + '</option>');
+                        }
+                        if (Result.length === 1) {
+                            fetchZoneState();
+                        }
+                    }
+                    else {
+                        return alert("!! No Data Exists");
+                    }
+                }
+            })
+
+    }
+
+    function fetchZoneState() {
+
+        var areaId = $('#dd_Area').val()
+
+        $.ajax
+            ({
+                url: "/Order/getLocationOnArea",
+                method: "Post",
+                data: { areaId: areaId },
+                success: function (Result) {
+
+                    $('#dd_zone').empty();
+                    $('#dd_State').empty();
+
+                    if (Result.length > 0) {
+
+                        for (var i = 0; i < Result.length; i++) {
+                            $('#dd_zone').append('<option value=' + Result[i]["ZoneId"] + '>' + Result[i]["ZoneName"] + '</option>');
+                            $('#dd_State').append('<option value=' + Result[i]["StateId"] + '>' + Result[i]["StateName"] + '</option>');
+                        }
+                    }
+                    else {
+                        return alert("!! No Data Exists");
+                    }
+                }
+            })
+
+    }
+
+    function clean() {
+        $("#btn_update").hide();
+        $('#txt_Contact').focus();
+        $("#btn_nsert").show();
+
+        $('#txt_name').attr("readonly", false);
+        $('#txt_pincode').attr("readonly", false);
+        $('#txt_landmark').attr("readonly", false);
+        $('#txt_address').attr("readonly", false);
+        $('#dd_zone').attr("readonly", false);
+        $('#dd_Area').attr("readonly", false);
+        $('#dd_State').attr("readonly", false);
+
+        $('#txt_Contact').val('');
+        $('#txt_name').val('');
+        //$('#txt_name').
+        $('#txt_landmark').val('');
+        $('#txt_total_qty').html(0);
+        $('#txt_total_price').html(0);
+        $('#dd_PaymentMode').empty();
+        $('#dd_PaymentMode').append('<option value="0">--Payment Mode--</option><option value="Cod">Cod</option><option value="Online">Online</option>');
+        $('#txt_Payment_Remark').val('');
+        $('#txt_Payment_Remark').attr("readonly", true);
+        $('#txt_Remark').val('');
+        $('#txtSource').val('');
+        $('#txt_address').val('');
+        $('#txt_pincode').val('');
+
+        $('#dd_Area').empty();
+        $('#dd_zone').empty();
+        $('#dd_State').val('');
+
+        $('#txt_itemName0').val('');
+        $('#txt_itemqty0').val('');
+
+        $('#txt_itemrate0').val('');
+        $('#txt_total_amount0').val('');
+        $('#txt_total_amount0').val('');
+        $('#TotaqtyShow').html(0);
+        $('#TotalpriceShow').html(0);
+
+        $('#tblCustOldItem').empty();
+
+        $('#ItemTable').empty();
+        $('#ItemTable').append('<thead><tr><th>Item Name</th><th>Quantity</th><th>Rate</th><th>Total Amount</th></tr ></thead >' +
+            '<tbody><tr><td hidden="hidden"><input type="text" id="items_itemId0"></td><td><input id="txt_itemName0" type="text" class="txtbox ShapeFields" /> <span id="ErrorMsg0"></span></td > ' +
+            '<td><input id="txt_itemqty0" type="text" class="form-control ShapeFields" onchange="GetTotalQtyAmt(this)" /> <span id="ErrorqtyMsg0"></span></td>' +
+            '<td><input id="txt_itemrate0" type="text" class="form-control ShapeFields" readonly="readonly" /></td>' +
+            '<td><input id="txt_total_amount0" type="text" class="form-control ShapeFields" readonly="readonly" /></td></tr></tbody>')
+
+
+    }
+
+    function calculate_totalprice(k) {
+        var h = k;
+
+        $('#txt_total_amount').val($('#txt_itemrate').val() * $('#txt_itemqty').val());
+        $('#txt_total_amount').attr("ReadOnly", "ReadOnly");
+    }
+
+    function fetch_customerdetails() {
+
+        if ($('#txt_Contact').val().length != 0) {
+            $.ajax({
+                url: "/Order/check_user",
+                method: "Post",
+                data: { mobilenumber: $('#txt_Contact').val() },
+
+                success: function (Result) {
+
+                    if (Result.Address != null && Result.Area_id != 0 && Result.State_id != 0 && Result.Zone_id != 0 && Result.pincode != 0) {
+                        $('#txt_name').val(Result.name);
+                        $('#txt_pincode').val(Result.pincode);
+                        $('#txt_landmark').val(Result.landmark);
+                        $('#txt_address').val(Result.Address);
+                        $('#dd_zone').val(Result.Zone_id);
+                        $('#dd_Area').val(Result.Area_id);
+                        $('#dd_State').val(Result.State_id);
+                        //disable textbox
+                        fetchZoneState2(Result.Area_id);
+                        //BindZoneWithId(Result.Zone_id, Result.State_id);
+                        BindAreaWithId(Result.Area_id, Result.Zone_id);
+                        //fetchAddress2(Result.pincode);
+                        var number = 1;
+                        if (Result.CustOldItems.length > 0) {
+                            $('#tblCustOldItem').empty();
+                            $('#tblCustOldItem').append('<tr><td><b> Customer history :</b></td ></tr >');
+                            for (var m = 0; m < Result.CustOldItems.length; m++) {
+                                number = number + m;
+                                $('#tblCustOldItem').append('<tr><td>' + number + '. ' + Result.CustOldItems[m]["ItemName"] + ' Of ' + Result.CustOldItems[m]["quantity"] + ' Quantity  On ' + Result.CustOldItems[m]["date"] + ' is ' + Result.CustOldItems[m]["Status"] + '</td ></tr >');
+                                //$('#lblCustOldItem').html(Result.CustOldItems[m]["ItemName"] + ' Quantity' + Result.CustOldItems[m]["quantity"] + ' On ' + Result.CustOldItems[m]["date"]);
+                            }
+                        }
+                        else {
+                            $('#tblCustOldItem').empty();
+                        }
+                        $('#txt_name').attr("readonly", true);
+                        $('#txt_pincode').attr("readonly", true);
+                        $('#txt_landmark').attr("readonly", true);
+                        $('#txt_address').attr("readonly", true);
+                        $('#dd_zone').attr("readonly", true);
+                        $('#dd_Area').attr("readonly", true);
+                        $('#dd_State').attr("readonly", true);
+
+                        $('#txt_item').focus();
+
+
+                    }
+                    else {
+                        $('#txt_name').attr("readonly", false);
+                        $('#txt_pincode').attr("readonly", false);
+                        $('#txt_landmark').attr("readonly", false);
+                        $('#txt_address').attr("readonly", false);
+                        $('#dd_zone').attr("readonly", false);
+                        $('#dd_Area').attr("readonly", false);
+                        $('#dd_State').attr("readonly", false);
+
+                        $('#txt_name').val('');
+                        $('#txt_pincode').val('');
+                        $('#txt_landmark').val('')
+                        $('#txt_address').val('')
+                        $('#dd_zone').val(0)
+                        $('#dd_Area').val(0)
+                        $('#dd_State').val(0)
+                        $('#tblCustOldItem').empty();
+                        $('#txt_name').focus();
+
+                    }
+                }
+            })
+        }
+        else {
+        }
+    }
+
+    function BindZoneWithId(ZoneId, StateId) {
+
+        $.ajax({
+            url: "/Common/GetZonesWithId/",
+            method: "Get",
+            data: { stateId: StateId, zoneId: ZoneId },
+            success: function (zone) {
+                if (zone.length > 0) {
+                    $("#dd_zone").empty();
+                    for (var i = 0; i < zone.length; i++) {
+                        var opt = '<option value=' + zone[i]["Value"] + '>' + zone[i]["Text"] + '</option>'
+                        $("#dd_zone").append(opt);
+
+                    }
+                }
+                else {
+                    return alert("Select State ");
+                }
+            }
+        })
+    }
+
+    function BindAreaWithId(AreaId, ZoneId) {
+
+        $.ajax({
+            url: "/Common/GetAreaWithId/",
+            method: "Get",
+            data: { AreaId: AreaId, zoneId: ZoneId },
+            success: function (area) {
+                if (area.length > 0) {
+                    $("#dd_Area").empty();
+                    for (var i = 0; i < area.length; i++) {
+                        var opt = '<option value=' + area[i]["Value"] + '>' + area[i]["Text"] + '</option>'
+                        $("#dd_Area").append(opt);
+                    }
+                }
+                else {
+                    return alert("Select State ");
+                }
+            }
+        })
+    }
+
+    function bindzone() {
+
+        var stateid = $('#dd_State').val();
+
+        $.ajax({
+            url: "/Common/GetZones/",
+            method: "Get",
+            data: { selectedValue: stateid },
+            success: function (x) {
+                if (x.length > 0) {
+                    $("#dd_zone").empty();
+                    for (var i = 0; i < x.length; i++) {
+                        var opt = '<option value=' + x[i]["Value"] + '>' + x[i]["Text"] + '</option>'
+                        $("#dd_zone").append(opt);
+                    }
+                }
+                else {
+                    return alert("Select State ");
+                }
+            }
+        })
+
+    }
+
+    function fetchZoneState() {
+
+        var areaId = $('#dd_Area').val()
+
+        $.ajax
+            ({
+                url: "/Order/getLocationOnArea",
+                method: "Post",
+                data: { areaId: areaId },
+                success: function (Result) {
+
+                    $('#dd_zone').empty();
+                    $('#dd_State').empty();
+
+                    if (Result.length > 0) {
+
+                        for (var i = 0; i < Result.length; i++) {
+                            $('#dd_zone').append('<option value=' + Result[i]["ZoneId"] + '>' + Result[i]["ZoneName"] + '</option>');
+                            $('#dd_State').append('<option value=' + Result[i]["StateId"] + '>' + Result[i]["StateName"] + '</option>');
+                        }
+                    }
+                    else {
+                        return alert("!! No Data Exists");
+                    }
+                }
+            })
+
+    }
+
+    function fetchZoneState2(areaId) {
+        $.ajax
+            ({
+                url: "/Order/getLocationOnArea",
+                method: "Post",
+                data: { areaId: areaId },
+                success: function (Result) {
+
+                    $('#dd_zone').empty();
+                    $('#dd_State').empty();
+
+                    if (Result.length > 0) {
+
+                        for (var i = 0; i < Result.length; i++) {
+                            $('#dd_zone').append('<option value=' + Result[i]["ZoneId"] + '>' + Result[i]["ZoneName"] + '</option>');
+                            $('#dd_State').append('<option value=' + Result[i]["StateId"] + '>' + Result[i]["StateName"] + '</option>');
+                        }
+                    }
+                    else {
+                        return alert("!! No Data Exists");
+                    }
+                }
+            })
+
+    }
+
+    function GetItemRate(GetId, trid) {
+        var GetTr = trid.substring(12, trid.length);
+        if ($("#" + GetId).val() != "") { $("#ErrorMsg" + GetTr).hide(); }
+        $.ajax({
+            url: "/Order/AutocompleteItemRate",
+            method: "post",
+            dataType: "json",
+            data: { GetItemId: GetId },
+            success: function (Result) {
+                GetRate = Result.rate;
+                $("#txt_itemrate" + GetTr).val(GetRate);
+            }
+        });
+    }
+
+    $(document).on('keydown', '.txtbox', function () {
+        var id = this.id;
+
+        $('#' + id).autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/Order/AutocompleteItem",
+                    type: "POST",
+                    dataType: "json",
+                    data: { prifix: request.term },
+                    success: function (data) {
+                        if (data.length > 0) {
+                            response($.map(data, function (item) {
+                                return { label: item.item_name, value: item.item_name, data: item.id };
+                            }))
+                        }
+                        else {
+                            $('#' + id).val('');
+                        }
+                    }
+                })
+            },
+            select: function (event, ui) {
+                var GetNumericvalue = id.substring(12, id.length);
+                if ($("#txt_itemqty" + GetNumericvalue).val() != "" && $("#" + id).val() != "") {
+                    $('#addMore2').removeAttr("disabled");
+                    $('#btn_nsert').removeAttr("disabled");
+
+                }
+                //if ($("#itemQuentity" + GetNumericvalue).val() !== ""){$("#ErrorqtyMsg" + GetNumericvalue).hide();}
+
+                var SendItemName = ui.item.data;
+                GetItemRate(SendItemName, id);
+            }
+        });
+    });
+
+    $(function () {
+        $('#addMore2').on('click', function () {
+            count++;
+            $("#ItemTable tbody").append('<tr id="myRow' + count + '"><td hidden="hidden"><input type="text" id="items_itemId' + count + '"></td><td><input type="text"  id="txt_itemName' + count + '" class="txtbox ShapeFields" /><span id="ErrorMsg' + count + '"></span></td><td><input type="text"  id="txt_itemqty' + count + '"  class="form-control ShapeFields" onchange="GetTotalQtyAmt(this);"/><span id="ErrorqtyMsg' + count + '"></span></td> <td><input type="text" id="txt_itemrate' + count + '" class="form-control ShapeFields" disabled="disabled"/></td> <td><input type="text" id="txt_total_amount' + count + '" class="form-control ShapeFields" disabled /></td><td><a class="remove" onclick="RemoveItem(this);GetTotalQtyAmt(this);">X</a></td></tr > ');
+
+            $("#txt_itemName" + count).focus();
+            var check = count - 1;
+            var validateId = $("#txt_itemName" + check).val();
+            var validateRate = $("#txt_itemqty" + check).val();
+
+            if (check == 0 || check > 0) {
+                if (validateId == "" && validateRate == "") {
+                    $("#txt_itemName" + check).focus();
+                    $("#ErrorMsg" + check).html("<font color='red'>Please Fill Item Name</font>");
+                    $("#ErrorqtyMsg" + check).html("<font color='red'>Please Fill Item Quentity</font>");
+                    $('#addMore2').attr("disabled", true);
+                    $('#btn_nsert').attr("disabled", true);
+                    $("#myRow" + count).remove();
+                }
+                else if ((validateId == "" && validateRate != "") || validateId == "") {
+                    $("#txt_itemName" + check).focus();
+                    $("#ErrorMsg" + check).html("<font color='red'>Please Fill Item Name</font>");
+                    $('#addMore2').attr("disabled", true);
+                    $('#btn_nsert').attr("disabled", true);
+                    $("#myRow" + count).remove();
+
+                }
+                else if ((validateId != "" && validateRate == "") || validateRate == "") {
+                    $("#txt_itemqty" + check).focus();
+                    $("#ErrorqtyMsg" + check).html("<font color='red'>Please Fill Item Quentity</font>");
+                    $('#addMore2').attr("disabled", true);
+                    $('#btn_nsert').attr("disabled", true);
+                    $("#myRow" + count).remove();
+                }
+            }
+        });
+    });
+
+    function GetTotalQtyAmt(GetId) {
+        var GetItemqtyId = $(GetId).attr("id");
+        if ($("#" + GetItemqtyId).val() == undefined) { }
+        else {
+            if ($("#" + GetItemqtyId).val() > 0) {
+
+                //if (GetItemqtyId.val() < 0) {
+                //    GetItemqtyId.val('');
+                //    return alert("amount is less then 0");
+                //}
+
+                var stulist = new Array();
+                var row = $("#ItemTable").find("tr").length;
+                for (var i = 1; i < row; i++) {
+                    stulist.push({
+                        //yha kaam tha vo
+                        item_name: $("#ItemTable").find("tr").eq(i).find('td:eq(1) input[type="text"]').val(),
+                        item_qty: $("#ItemTable").find("tr").eq(i).find('td:eq(2) input[type="text"]').val(),
+                        item_rate: $("#ItemTable").find("tr").eq(i).find('td:eq(3) input[type="text"]').val(),
+                        item_total_amount: $("#ItemTable").find("tr").eq(i).find('td:eq(4) input[type="text"]').val()
+                    })
+                }
+                var CountValue = { ItemDetails: stulist }
+                $.ajax({
+                    url: "/Employee/gettotal",
+                    method: "Post",
+                    data: { order: CountValue },
+                    success: function (result) {
+                        var GetRow = GetItemqtyId.substring(11, GetItemqtyId.length);
+                        $("#txt_total_amount" + GetRow).val($("#txt_itemrate" + GetRow).val() * $("#" + GetItemqtyId).val());
+
+                        $('#TotaqtyShow').html(result.item_qty);
+                        $('#TotalpriceShow').html(result.item_total_amount);
+
+                        $('#txt_total_qty').text(result.item_qty);
+                        $('#txt_total_price').text(result.item_total_amount);
+                        $("#ErrorqtyMsg" + GetRow).hide();
+                        $('#addMore2').removeAttr("disabled");
+                        $('#btn_nsert').removeAttr("disabled");
+                    }
+                })
+            }
+            else {
+                alert("Please Enter Quantity greater than 0");
+                $('#addMore2').attr("disabled", true);
+                $('#btn_nsert').attr("disabled", true);
+            }
+        }
+    }
+
+    function RemoveItem(getId) {
+        var trIndex = $(getId).closest("tr").index();
+        if (trIndex > 0) {
+
+            var ItemOrderID = $(getId).closest('tr').find('td:eq(0) input').val()
+            DeleteOrderItem(ItemOrderID)
+
+
+            var GetQty = $(getId).closest('tr').find('td:eq(2) input').val()
+            var GetTopQty = $('#TotaqtyShow').text($('#TotaqtyShow').html() - GetQty);
+
+            var GetTotalPrice = $(getId).closest('tr').find('td:eq(4) input').val()
+            var GetTopTotal = $('#TotalpriceShow').text($('#TotalpriceShow').html() - GetTotalPrice);
+
+
+
+            $(getId).closest("tr").remove();
+            $('#addMore2').removeAttr("disabled");
+            $('#btn_nsert').removeAttr("disabled");
+
+            $('#txt_total_qty').html(GetTopQty.text());
+            $('#txt_total_price').html(GetTopTotal.text());
+        } else { }
+    }
+
+    function DeleteOrderItem(id) {
+        $.ajax({
+            url: "/Order/delte_OrderItem",
+            method: "Get",
+            data: { id: id },
+            success: function (Result) {
+
+
+            }
+        });
+    }
+
+    function Submit() {
+
+        if ($('#txt_Contact').val() === "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Customer Contact Number  ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#txt_Contact').focus();
+            return;
+        }
+        else if ($('#txt_Contact').val().length < 10 || $('#txt_Contact').val().length > 11) {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Use 10 Digit Valid Contact Number  ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#txt_Contact').focus();
+            return;
+        }
+
+        else if ($('#txt_name').val() === "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Customer Name ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#txt_name').focus();
+            return;
+        }
+
+        else if ($('#txt_address').val() == "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Address ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#myModalLocation').modal();
+            $('.modal').on('shown.bs.modal', function () {
+                //$(this).find("select:first").focus();
+                $(this).find('#txt_address').focus();
+            });
+
+            return;
+        }
+
+        else if ($('#txt_pincode').val() === "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Pincode ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#txt_pincode').focus();
+            $('#myModalLocation').modal();
+            $('.modal').on('shown.bs.modal', function () {
+                //$(this).find("select:first").focus();
+                $(this).find('#txt_pincode').focus();
+            });
+            return;
+        }
+
+
+        else if ($('#dd_Area').val() === "0") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Select Area ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#dd_Area').focus();
+            return;
+        }
+
+        else if ($('#dd_zone').val() === "0") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Select Zone ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#dd_zone').focus();
+            return;
+        }
+
+        else if ($('#dd_State').val() === "0") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Select State ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#dd_State').focus();
+            return;
+        }
+
+        else if ($('#txt_itemName0').val() == "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Item Name ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#myModal').modal();
+            $('.modal').on('shown.bs.modal', function () {
+                //$(this).find("select:first").focus();
+                $(this).find('#txt_itemName0').focus();
+            });
+            return;
+        }
+        else if ($('#txt_itemqty0').val() == "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Item Quentity ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#myModal').modal();
+            $('.modal').on('shown.bs.modal', function () {
+                //$(this).find("select:first").focus();
+                $(this).find('#txt_itemqty0').focus();
+            });
+            return;
+        }
+        else if ($('#txt_itemrate0').val() == "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Item Rate ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#txt_itemrate0').focus();
+            $('#myModal').modal();
+            return;
+        }
+        else if ($('#txt_total_amount0').val() == "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Item Total Amount ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#txt_total_amount0').focus();
+            $('#myModal').modal();
+            return;
+        }
+
+        else if ($('#txt_total_qty').text() === "" || $('#txt_total_price').text() === "") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Enter Some item  ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            return;
+        }
+        else if ($('#dd_PaymentMode').val() === "0") {
+            $('#msg').fadeIn();
+            $('#msg').html('<font color="Red">Please Select Payment Mode ...... !! </font>');
+            $('#msg').fadeOut(5000);
+            $('#dd_PaymentMode').focus();
+            return;
+        }
+
+        var stulist = new Array();
+        var row = $("#ItemTable").find("tr").length;
+        // var SStudent = {};
+        for (var i = 1; i < row; i++) {
+            stulist.push({
+                // var Id = $("#ItemTable").find("tr").eq(i).find("td").eq(0).text();
+                item_name: $("#ItemTable").find("tr").eq(i).find('td:eq(1) input[type="text"]').val(),
+                // var name = $("#ItemTable").find("tr").eq(i).find("td").eq(1).text();
+                item_qty: $("#ItemTable").find("tr").eq(i).find('td:eq(2) input[type="text"]').val(),
+                // var dept = $("#ItemTable").find("tr").eq(i).find("td").eq(2).text();
+                item_rate: $("#ItemTable").find("tr").eq(i).find('td:eq(3) input[type="text"]').val(),
+                // var salary = $("#ItemTable").find("tr").eq(i).find("td").eq(3).text(); Last Calls
+                item_total_amount: $("#ItemTable").find("tr").eq(i).find('td:eq(4) input[type="text"]').val()
+            })
+        }
+
+        var n = $("#dduserName option:selected").text().split('(');
+        var CallerId =@Convert.ToString(Session["Empid"]);
+        //var callerName = $("#GetSessionName").val();
+        var callerName = $("#Getname").html();
+        callerName=callerName.split("Leads");
+        //var remark = $("#paymentRemark").val();
+        var values = {};
+        values.cust_mobile = $('#txt_Contact').val();
+        values.cust_name = $('#txt_name').val();
+        values.pincode = $('#txt_pincode').val();
+        values.Zone_id = $('#dd_zone').val();
+        values.Area_id = $('#dd_Area').val();
+        values.State_id = $('#dd_State').val();
+        values.Address = $('#txt_address').val();
+        values.landmark = $('#txt_landmark').val();
+        values.Payment_mode = $('#dd_PaymentMode').val();
+        values.payment_remark = $('#txt_Payment_Remark').val();
+        values.Remark = $('#txt_Remark').val();
+        values.total_qty = $('#txt_total_qty').text();
+        values.Total_Price = $('#txt_total_price').text();
+        values.CallerId =CallerId;
+        values.callerName = callerName[0];
+        values.Source = $('#txtSource').val();
+
+        values.ItemDetails = stulist;
+       // console.log(values.callerName);
+        // console.log(values.CallerId, values.callerName);
+        if (values.cust_mobile.length != 0) {
+           // //var s = { payment_remark: remark, ItemDetails: stulist };
+            $.ajax({
+                url: "/Order/insert_Order",
+                method: "post",
+                data: { order: values },
+                success: function (Result) {
+                    if (Result > 0) {
+                        //alert("Order Inserted Succesfully !!");
+                        addReferenseMobile($('#ExistisngCustomerNumber').val());
+                        CallResponse('Interested');
+                        $('#addMore2').removeAttr("disabled");
+                        $('#btn_nsert').removeAttr("disabled");
+                        $('#msg').fadeIn();
+                        $('#msg').html('<font color="Green"><h2>!! Order Inserted Succesfully !! </h2></font>')
+                        $('#msg').fadeOut(5000);
+                        //location.reload();
+                        location.reload();
+                        clean();
+                    }
+                    else {
+                        $('#addMore2').attr("disabled", true);
+                        $('#btn_nsert').attr("disabled", true);
+                        $('#msg').fadeIn();
+                        $('#msg').html('<font color="Red">Oops !! Something Gone Wrong ...... !! </font>')
+                        $('#msg').fadeOut(5000);
+                        // alert("Oops !! Something Gone Wrong ......")
+                    }
+                }
+            })
+        }
+        else {
+            alert("Mobile Number is Missing ");
+        }
+
+    }
+
+    function Closemodal() {
+        $('#txt_landmark').focus();
+    }
+
+    function paymentmodechange() {
+
+        if ($('#dd_PaymentMode').val() != 0) {
+            $('#txt_Payment_Remark').attr("readonly", false);
+
+            //$("#paymentRemarkHead").show();
+            //$("#txt_Payment_Remark").show();
+        }
+        else {
+            //$("#paymentRemarkHead").hide();
+            //$("#txt_Payment_Remark").hide();
+            $('#txt_Payment_Remark').attr("readonly", true);
+            $('#txt_Payment_Remark').val('');
+        }
+    }
+
+    function Counter() {
+        var Timercount = 10;
+        $('#counter').text(Timercount);
+        timer = setInterval(function () {
+            Timercount--;
+            if (Timercount === 0) {
+                clearInterval(timer);
+                $("#RadioLunch").attr("checked", false);
+                $("#RadioBreak").attr("checked", false);
+                $("#pauseButton").html("Hold");
+                $("#popup").modal("hide");
+                StartTimerOnload();
+            }
+            $('#counter').text(Timercount);
+        }, 1000);
+    }
+
+    function CloseTimerModal(GetName) {
+        if (GetName == 'Resume') {
+            LogSubmit();
+        }
+        else {
+            $("#RadioLunch").attr("checked", false);
+            $("#RadioBreak").attr("checked", false);
+            $("#RadioLunch").removeAttr('disabled', 'disabled');
+            $("#RadioLunch").removeAttr('readonly', 'readonly');
+            $("#RadioBreak").removeAttr('disabled', 'disabled');
+            $("#RadioBreak").removeAttr('readonly', 'readonly');
+            $('#counter').html(0);
+            $("#pauseButton").html("Hold");
+            $("#popup").modal("hide");
+            clearInterval(timer);
+            elapsedTime = 0;
+            StartTimerOnload();
+        }
+        //elapsedTime = 0;
+        //StartTimerOnload("Hold");
+        //location.reload();
+        //if ($('#counter').html() > 0) {
+        //clearInterval(timer);
+        //StartTimerOnload();
+        //elapsedTimes = 0;
+        // $('#counter').html(0);
+        //$("#RadioLunch").attr("checked", false);
+        //$("#RadioBreak").attr("checked", false);
+        // GetWorkingmunites();
+        //
+        //$("#pauseButton").html("Hold");
+        //$("#popup").modal("hide");
+        //}
+
+
+        //var str1 = $("#Gethours").html() + " : " + $("#Getminutes").html() + " : " + $("#Getseconds").html();
+        //var str2 = $("#Endhours").html() + " : " + $("#Endminutes").html() + " : " + $("#Endseconds").html();;
+        //str1 = str1.split(':');
+        //str2 = str2.split(':');
+        //if (str1[2].split(' ').pop() != str2[2].split(' ').pop()) { // one is AM other is PM
+        //    str1[0] = parseInt(str1[0]);
+        //}
+        //finalStr = m(str1[0], str2[0]) + ":" + m(str1[1], str2[1]) + ":" + m(str1[2], str2[2]);
+        //LogSubmit(finalStr);
+        //function m(n1, n2) {
+        //    return Math.abs(parseInt(n1) - parseInt(n2));
+        //}
+    }
+
+    function StopCounter() {
+        clearInterval(timer);
+        $("#RadioLunch").attr('disabled', 'disabled');
+        $("#RadioLunch").attr('readonly', 'readonly');
+        $("#RadioBreak").attr('disabled', 'disabled');
+        $("#RadioBreak").attr('readonly', 'readonly');
+        var Remark;
+        Remark = $("input[name='Gender']:checked").parent('label').text();
+        $.ajax({
+            url: "/callerLeads/InsertHoldLogsonEvent",
+            method: "post",
+            data: { GetRemark: Remark }
+            //success: function (Result) {}
+        });
+
+    }
+
+    //Popup Reason Start Timer
+
+    //var prevTimes, stopwatchIntervals, elapsedTimes = 0;
+
+    //var updatepoupTimes = function () {
+    //    var tempTimes = elapsedTimes;
+    //    var millisecondss = tempTimes % 1000;
+    //    tempTimes = Math.floor(tempTimes / 1000);
+    //    var secondss = tempTimes % 60;
+    //    tempTimes = Math.floor(tempTimes / 60);
+    //    var minutess = tempTimes % 60;
+    //    tempTimes = Math.floor(tempTimes / 60);
+    //    var hourss = tempTimes % 60;
+    //    if (secondss < 10) { secondss = "0" + secondss; }
+    //    if (minutess < 10) { minutess = "0" + minutess; }
+    //    if (hourss < 10) { hourss = "0" + hourss; }
+    //    $("#Endhours").text(hourss) + " : " + $("#Endminutes").text(minutess) + " : " + $("#Endseconds").text(secondss);
+    //};
+
+    //function StartTimerPopup() {
+    //    if (!stopwatchIntervals) {
+    //        stopwatchIntervals = setInterval(function () {
+    //            if (!prevTimes) {
+    //                prevTimes = Date.now();
+    //            }
+
+    //            elapsedTimes += Date.now() - prevTimes;
+    //            prevTimes = Date.now();
+
+    //            updatepoupTimes();
+    //        }, 50);
+    //    }
+    //};
+
+    //End
+    //function GetWorkingmunites() {
+    //    var str1 = $("#Gethours").html() + " : " + $("#Getminutes").html() + " : " + $("#Getseconds").html();
+    //    var str2 = $("#Endhours").html() + " : " + $("#Endminutes").html() + " : " + $("#Endseconds").html();;
+    //    str1 = str1.split(':');
+    //    str2 = str2.split(':');
+    //    if (str1[2].split(' ').pop() != str2[2].split(' ').pop()) { // one is AM other is PM
+    //        str1[0] = parseInt(str1[0]);
+    //    }
+    //    finalStr = m(str1[0], str2[0]) + ":" + m(str1[1], str2[1]) + ":" + m(str1[2], str2[2]);
+    //    LogSubmit(finalStr);
+    //    function m(n1, n2) {
+    //        return Math.abs(parseInt(n1) - parseInt(n2));
+    //    }
+    //}
+
+    function LogSubmit() {
+        if ($("#RadioLunch").prop('checked') == false && $("#RadioBreak").prop('checked') == false) {
+            return alert(" Please Select Any One Lunch OR Break");
+        }
+        else {
+            var Hours = $("#Endhours").text();
+            var Minutes = $("#Endminutes").text();
+            var Seconds = $("#Endseconds").text();
+            var Remark;
+            Remark = $("input[name='Gender']:checked").parent('label').text();
+            $.ajax({
+                url: "/callerLeads/InsertHoldLogs",
+                method: "post",
+                data: { hour: Hours, minutes: Minutes, seconds: Seconds, Response: Remark },
+                success: function (Result) {
+                    $("#RadioLunch").attr("checked", false);
+                    $("#RadioBreak").attr("checked", false);
+                    $("#RadioLunch").removeAttr('disabled', 'disabled');
+                    $("#RadioLunch").removeAttr('readonly', 'readonly');
+                    $("#RadioBreak").removeAttr('disabled', 'disabled');
+                    $("#RadioBreak").removeAttr('readonly', 'readonly');
+                    $('#counter').html(0);
+                    $("#pauseButton").html("Hold");
+                    $("#popup").modal("hide");
+                    clearInterval(timer);
+                    elapsedTime = 0;
+                    StartTimerOnload();
+
+                }
+            });
+        }
+    }
+
+    function ShowIncomingNumber(Checked) {
+        var GetCheckedText = $(Checked).parent('label').text();
+        if (GetCheckedText.trim() === 'Existisng Customer') {
+            $("#ExistisngCustomerDiv").show();
+            $("#ReferenceDiv").hide();
+            $("#ExistisngCustomerNumber").val('');
+            $("#ReferenceNumber").val('');
+            $("#ErrorMsgExits").hide();
+            $("#ErrorMsgReference").hide();
+        }
+        else if (GetCheckedText.trim() === 'Reference') {
+            $("#ExistisngCustomerDiv").show();
+            $("#ReferenceDiv").show();
+            $("#ExistisngCustomerNumber").val('');
+            $("#ReferenceNumber").val('');
+            $("#ErrorMsgReference").hide();
+            $("#ErrorMsgExits").hide();
+        }
+
+    }
+
+    function IncomingCallModalRemove() {
+        $("#ExistisngCustomerDiv").hide();
+        $("#ReferenceDiv").hide();
+        $("#ExistisngCustomerNumber").empty();
+        $("#ReferenceNumber").empty();
+        $("#RadioExistisngCustomer").prop('checked', false);
+        $("#RadioReference").prop('checked', false);
+    }
+
+    function SetNumber(GetValue, GetRefrence, CheckedName) {
+        if (GetValue != "") {
+            $.ajax({
+                url: "/callerLeads/CheckAsignCaller",
+                method: "Post",
+                data: { mobilenumber: GetValue, RadioSelected: CheckedName },
+                success: function (Result) {
+                    if (Result > 0) {
+                        if (GetValue != "" && GetRefrence === "" && CheckedName === "Existisng Customer") {
+                            $('#txt_Contact').val(GetValue);
+                            $("#DisplayOrder").modal("show");
+                            $("#IncomingCallsModal").modal("hide");
+                         
+
+                            //if (Result.Result.Address != null && Result.Result.Area_id != 0 && Result.Result.State_id != 0 && Result.Result.Zone_id != 0 && Result.Result.pincode != 0) {
+                            //    $('#txt_name').val(Result.Result.name);
+                            //    $('#txt_pincode').val(Result.Result.pincode);
+                            //    $('#txt_landmark').val(Result.Result.landmark);
+                            //    $('#txt_address').val(Result.Result.Address);
+                            //    $('#dd_zone').val(Result.Result.Zone_id);
+                            //    $('#dd_Area').val(Result.Result.Area_id);
+                            //    $('#dd_State').val(Result.Result.State_id);
+                            //    fetchZoneState2(Result.Result.Area_id);
+                            //    BindAreaWithId(Result.Result.Area_id, Result.Result.Zone_id);
+                            //    var number = 1;
+
+                            //    if (Result.Result.CustOldItems.length > 0) {
+                            //        $('#tblCustOldItem').empty();
+                            //        $('#tblCustOldItem').append('<tr><td><b> Customer history :</b></td ></tr >');
+                            //        for (var m = 0; m < Result.CustOldItems.length; m++) {
+                            //            number = number + m;
+                            //            $('#tblCustOldItem').append('<tr><td>' + number + '. ' + Result.CustOldItems[m]["ItemName"] + ' Of ' + Result.CustOldItems[m]["quantity"] + ' Quantity  On ' + Result.CustOldItems[m]["date"] + ' is ' + Result.CustOldItems[m]["Status"] + '</td ></tr >');
+                            //        }
+                            //    }
+                            //    else {
+                            //        $('#tblCustOldItem').empty();
+                            //    }
+                            //    $('#txt_name').attr("readonly", true);
+                            //    $('#txt_pincode').attr("readonly", true);
+                            //    $('#txt_landmark').attr("readonly", true);
+                            //    $('#txt_address').attr("readonly", true);
+                            //    $('#dd_zone').attr("readonly", true);
+                            //    $('#dd_Area').attr("readonly", true);
+                            //    $('#dd_State').attr("readonly", true);
+
+                            //    $('#txt_item').focus();
+
+
+                            //}
+                        }
+                        else if (GetValue != "" && GetRefrence != "" && CheckedName === "Reference") {
+
+                            if (GetValue === GetRefrence) {
+                                $('#txt_Contact').val(GetRefrence);
+                                $("#DisplayOrder").modal("show");
+                                $("#IncomingCallsModal").modal("hide");
+
+                                console.log(Result.Result);
+
+                                console.log(Result.Result.Address);
+
+                                //if (Result.Result.Address != null && Result.Result.Area_id != 0 && Result.Result.State_id != 0 && Result.Result.Zone_id != 0 && Result.Result.pincode != 0) {
+                                //    $('#txt_name').val(Result.Result.name);
+                                //    $('#txt_pincode').val(Result.Result.pincode);
+                                //    $('#txt_landmark').val(Result.Result.landmark);
+                                //    $('#txt_address').val(Result.Result.Address);
+                                //    $('#dd_zone').val(Result.Result.Zone_id);
+                                //    $('#dd_Area').val(Result.Result.Area_id);
+                                //    $('#dd_State').val(Result.Result.State_id);
+                                //    fetchZoneState2(Result.Result.Area_id);
+                                //    BindAreaWithId(Result.Result.Area_id, Result.Result.Zone_id);
+                                //    var number = 1;
+
+                                //    if (Result.Result.CustOldItems.length > 0) {
+                                //        $('#tblCustOldItem').empty();
+                                //        $('#tblCustOldItem').append('<tr><td><b> Customer history :</b></td ></tr >');
+                                //        for (var m = 0; m < Result.CustOldItems.length; m++) {
+                                //            number = number + m;
+                                //            $('#tblCustOldItem').append('<tr><td>' + number + '. ' + Result.CustOldItems[m]["ItemName"] + ' Of ' + Result.CustOldItems[m]["quantity"] + ' Quantity  On ' + Result.CustOldItems[m]["date"] + ' is ' + Result.CustOldItems[m]["Status"] + '</td ></tr >');
+                                //        }
+                                //    }
+                                //    else {
+                                //        $('#tblCustOldItem').empty();
+                                //    }
+                                //    $('#txt_name').attr("readonly", true);
+                                //    $('#txt_pincode').attr("readonly", true);
+                                //    $('#txt_landmark').attr("readonly", true);
+                                //    $('#txt_address').attr("readonly", true);
+                                //    $('#dd_zone').attr("readonly", true);
+                                //    $('#dd_Area').attr("readonly", true);
+                                //    $('#dd_State').attr("readonly", true);
+
+                                //    $('#txt_item').focus();
+
+
+                                //}
+                            }
+
+                            else {
+                                $('#txt_Contact').val(GetRefrence);
+                                $("#DisplayOrder").modal("show");
+                                $("#IncomingCallsModal").modal("hide");
+                            }
+                        }
+
+                        else {
+                            $('#txt_name').attr("readonly", false);
+                            $('#txt_pincode').attr("readonly", false);
+                            $('#txt_landmark').attr("readonly", false);
+                            $('#txt_address').attr("readonly", false);
+                            $('#dd_zone').attr("readonly", false);
+                            $('#dd_Area').attr("readonly", false);
+                            $('#dd_State').attr("readonly", false);
+
+                            $('#txt_name').val('');
+                            $('#txt_pincode').val('');
+                            $('#txt_landmark').val('')
+                            $('#txt_address').val('')
+                            $('#dd_zone').val(0)
+                            $('#dd_Area').val(0)
+                            $('#dd_State').val(0)
+                            $('#tblCustOldItem').empty();
+                            $('#txt_name').focus();
+
+                        }
+                    }
+                    else {
+                        $("#ErrorMsgExits").show();
+                        var m = ''
+                        $('#ExistisngCustomerNumber').val('');
+                        $("#ErrorMsgExits").html("<font style='color:red'>" + GetValue +" Contact is Not Assign to You.. </br> Contact To Your Admin </font>");
+                    }
+                }
+            })
+        }
+    }
+
+    function test() {
+        var GetCheckRadio = $("input[name='Gender']:checked").parent('label').text();
+
+        if (GetCheckRadio.trim() === 'Existisng Customer') {
+            var s = $('#ExistisngCustomerNumber').val();
+
+            if (s.length > 0 && s.length < 10) {
+                $("#ErrorMsgExits").show();
+                $("#ErrorMsgExits").html("<font style='color:red'>Enter 10 digit Contact Number</font>");
+                return
+            }
+
+            if (s.length > 10) {
+                $("#ErrorMsgExits").show();
+                return $("#ErrorMsgExits").html("<font style='color:red'>Enter 10 digit Contact Number</font>");
+            }
+
+
+            else {
+
+                $("#ErrorMsgExits").hide();
+                SetNumber(s, "", GetCheckRadio.trim());
+            }
+        }
+
+        else if (GetCheckRadio.trim() === 'Reference') {
+            var d = $('#ReferenceNumber').val();
+            var sd = $('#ExistisngCustomerNumber').val();
+
+            if (sd.length > 0 && sd.length < 10) {
+                $("#ErrorMsgExits").show();
+                $("#ErrorMsgExits").html("<font style='color:red'>Enter 10 digit Contact Number</font>");
+                return
+            }
+
+            if (sd.length > 10) {
+                $("#ErrorMsgExits").show();
+                $("#ErrorMsgExits").html("<font style='color:red'>Enter 10 digit Contact Number</font>");
+                return
+            }
+
+            if (d.length > 0 && d.length < 10) {
+                $("#ErrorMsgReference").show();
+                $("#ErrorMsgReference").html("<font style='color:red'>Enter 10 digit Contact Number</font>");
+                return
+            }
+
+            if (d.length > 10) {
+                $("#ErrorMsgReference").show();
+                $("#ErrorMsgReference").html("<font style='color:red'>Enter 10 digit Contact Number</font>");
+                return
+            }
+
+            else {
+                $("#ErrorMsgReference").hide();
+                $("#ErrorMsgExits").hide();
+                SetNumber(sd, d, GetCheckRadio.trim());
+            }
+        }
+
+    }
+
+    function IncomingModal() {
+        $("#ExistisngCustomerNumber").val('');
+        $("#ReferenceNumber").val('');
+        $("#ErrorMsgExits").hide();
+        $("#ErrorMsgReference").hide();
+        $("#IncomingCallsModal").modal('show');
+    }
+</script>
+
+
+@*-------------------------------------------------------------------------- Responsive Page ----------------------------------------------------------------------------------*@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">
+            @*<div class="col-lg-2 col-lg-offset-5"> <h1 class="clock"></h1> </div>*@
+            <div class="col-lg-3 col-lg-offset-4" style="text-align:center;">
+                <h3>
+                    <span id="hours"></span> :
+                    <span id="minutes"></span> :
+                    <span id="seconds"></span>
+                    @*<span id="milliseconds"></span>*@
+                    &nbsp;
+                    <button id="pauseButton" onclick="Stop()">Hold</button>
+                </h3>
+            </div>
+            <div class="col-lg-3 col-lg-offset-2">
+                <h2><strong id="Getname"> @Convert.ToString(Session["user_name"]) Leads </strong></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="col-lg-3">
+                <div class="panel panel-danger">
+                    <div class="panel-heading"><h4 style="text-align:center"> Last Calls</h4></div>
+                    <div class="panel-body table-responsive">
+                        <table id="tblCallerLastCall" style="border-collapse: collapse;" class="table"></table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-offset-1 col-lg-3" style="text-align:center;">
+                <img style="height:350px;width:350px;" src="~/Img/1a3b4be0ea9a7cdd.gif" />
+                <h1>
+                    <strong>
+                        <span id="lblCustPhNo"></span>
+                        <spna id="lblCustPhNo2"></spna>
+                    </strong>
+                </h1>
+
+                
+                <br />
+
+                
+            </div>
+
+
+            <div class="col-lg-offset-1 col-lg-4">
+
+                <div class="row ">
+                    <div class="col-lg-12">
+
+                        @*<div class="col-lg-offset-3 col-lg-2 whitespace">
+                                <button type="button" class="btn btn-success ButtonShape" style="padding: 12px 43px;" onclick="orderPopup()"><h4><b>Intrested</b></h4></button>
+                            </div>*@
+
+                        <div class="col-lg-offset-2 col-lg-5">
+                            <div class="panel panel-success">
+                                <div class="panel-heading"><b>Orders</b></div>
+                                <div class="panel-body"><span id="spanOrder">0</span></div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-5">
+                            <div class="panel panel-danger">
+                                <div class="panel-heading"><b>Calls </b></div>
+                                <div class="panel-body"><span id="spanCalls">0</span></div>
+                            </div>
+                        </div>
+
+                        @*<div class="col-lg-offset-3 col-lg-4">
+                                <div class="panel panel-danger">
+                                    <div class="panel-heading">Today Calls</div>
+                                    <div class="panel-body"><span id="spanCalls">0</span></div>
+                                </div>
+                            </div>*@
+
+                        @*<div class="col-lg-5">
+                                <div class="panel panel-success">
+                                    <div class="panel-heading">Total Order</div>
+                                    <div class="panel-body"><span id="spanOrder">0</span></div>
+                                </div>
+                            </div>*@
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12 ">
+                        <div class="col-lg-offset-2 col-lg-4 whitespace">
+                            <button type="button" class="btn btn-success ButtonShape " style="padding: 12px 5px;" onclick="IncomingModal()"><h4><b>Incoming Call</b></h4></button>
+                        </div>
+
+                        <div class="col-lg-offset-2 col-lg-4 whitespace">
+                            <button type="button" class="btn btn-danger ButtonShape " style="padding: 12px 42px;" ondblclick="DNDMobile(),CallResponse('DND')"><h4><b>DND</b></h4></button>
+                        </div>
+                    </div>
+                </div>
+                <br />
+
+
+                <div class="row">
+                    <div class="col-lg-12 ">
+                        <div class="col-lg-offset-2 col-lg-4 whitespace">
+                            <button type="button" class="btn btn-success ButtonShape " style="padding: 12px 20px;" onclick="orderPopup()"><h4><b>Interested</b></h4></button>
+                        </div>
+
+                        <div class="col-lg-offset-2 col-lg-4 whitespace">
+                            <button type="button" class="btn btn-danger ButtonShape " style="padding: 12px 1px;" ondblclick="CallResponse('Not Interested')"><h4><b>Not Interested</b></h4></button>
+                        </div>
+
+                        @*<div class="col-lg-offset-2 col-lg-4">
+                                <div class="panel panel-success">
+                                    <div class="panel-heading"><b>Total Order</b></div>
+                                    <div class="panel-body"><span id="spanOrder">0</span></div>
+                                </div>
+                            </div>*@
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-offset-2 col-lg-4 whitespace">
+                            <button type="button" class="btn btn-warning ButtonShape " style="padding: 12px 5px;" ondblclick="CallResponse('No Response')"><h4><b>No Response</b></h4></button>
+                        </div>
+
+                        <div class="col-lg-offset-2 col-lg-4 whitespace">
+                            <button class="btn btn-primary ButtonShape" style="padding: 12px 24px;" onclick="getItems()"><h4><b> Offers % </b></h4></button>
+                        </div>
+                    </div>
+                </div>
+
+                <br />
+                <br />
+
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-offset-2 col-lg-4 whitespace">
+                            <input type="date" class="ShapeFields" id="txt_followup" style="width:126px; padding: 20px 2px;" />
+                        </div>
+                        <div class="col-lg-offset-2 col-lg-4 whitespace">
+                            @*<textarea type="text" class="ShapeFields" style="width:124px; padding: 14px 25px;" placeholder="Remark....." id="txt_CallRemark"></textarea>*@
+                            <select id="txt_CallRemark" class="ShapeFields" style="width:124px; height:66px; padding: 14px 25px;">
+                                <option value="0">-- Select --</option>
+                                <option value="Call Back">Call Back</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                                <option value="Will Confirm">Will Confirm</option>
+                                <option value="Out Of Station">Out Of Station</option>
+                                <option value="Already Delivered">Already Delivered</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                @*<br />
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="col-lg-offset-3 col-lg-2">
+                                <button class="btn btn-primary ButtonShape" onclick="getItems()"> Offers % </button>
+                            </div>
+                            <div class="col-lg-2">
+                                <button type="button" class="btn btn-success ButtonShape" onclick="Response('Intrested')">Intrested</button>
+                            </div>
+
+                            <div class="col-lg-2">
+                                <button type="button" class="btn btn-danger ButtonShape" onclick="Response('Not Intrested')">Not Intrested</button>
+                            </div>
+
+                            <div class="col-lg-offset-1 col-lg-2">
+                                <button type="button" class="btn btn-warning ButtonShape" onclick="Response('No Response')">No Response</button>
+                            </div>
+                        </div>
+                    </div>*@
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12" style="text-align:center">
+        <h3> <strong><span id="lblCustPhNoLastDetails"></span></strong> </h3>
+    </div>
+    <br />
+    <br />
+    <hr />
+    <div class="footer-center">
+        <div class="col-lg-6">
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h4>
+                        <b>
+                            Customer History
+                        </b>
+                    </h4>
+                </div>
+                <div class="panel-body">
+                    <table id="tblCustOldItem"></table>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-lg-6">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h4><b>Customer Details</b></h4>
+                </div>
+                <div class="panel-body">
+                    <table id="tblCustAddress"></table>
+
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <hr />
+    <div class="row">
+        <div class="col-lg-12">
+            <marquee scrollamount="15" onmouseover="this.stop();" onmouseout="this.start();">
+                <img src="~/Img/JivoImg/jivoimg1.jpg" class="circular" />
+                <img src="~/Img/JivoImg/jivo2img.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo3img.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo4img.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo5img.png" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivoimg6.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivoimg7.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo8img.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo9img.jpg" class="circular col-lg-offset-1" />
+            </marquee>
+        </div>
+    </div><hr />
+</div>
+
+
+
+@*---------------------------------------------------------------------------- End Page ------------------------------------------------------------------------------------------*@
+
+@*-----------------Comment By Lucky--------------*@
+<!--<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12">-->
+@*<div class="col-lg-2 col-lg-offset-5"> <h1 class="clock"></h1> </div>*@
+<!--<div class="col-lg-3 col-lg-offset-4" style="text-align:center;">
+    <h3>
+        <span id="hours"></span> :
+        <span id="minutes"></span> :
+        <span id="seconds"></span>-->
+@*<span id="milliseconds"></span>*@
+<!--&nbsp;
+                <button id="pauseButton" onclick="Stop()">Hold</button>
+            </h3>
+        </div>
+        <div class="col-lg-3 col-lg-offset-2">
+            <h2><strong> @Convert.ToString(Session["user_name"]) Leads </strong></h2>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="col-lg-3">
+            <div class="panel panel-danger">
+                <div class="panel-heading"><h4 style="text-align:center"> Last Calls</h4></div>
+                <div class="panel-body table-responsive">
+                    <table id="tblCallerLastCall" style="border-collapse: collapse;" class="table"></table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-offset-1 col-lg-3" style="text-align:center;">
+            <img style="height:350px;width:350px;" src="~/Img/1a3b4be0ea9a7cdd.gif" />
+            <h1> <strong><span id="lblCustPhNo"></span></strong> </h1>
+
+        </div>
+
+        <div class="col-lg-offset-1 col-lg-4">
+
+            <div class="row ">
+                <div class="col-lg-12">
+                    <div class="col-lg-offset-1 col-lg-5">-->
+@*<button type="button" class="btn btn-success ButtonShape" style="padding: 12px 43px;" onclick="orderPopup()"><h4><b>Intrested</b></h4></button>*@
+
+<!--<div class="panel panel-success">
+        <div class="panel-heading"><b>Total Order</b></div>
+        <div class="panel-body"><span id="spanOrder">0</span></div>
+    </div>
+</div>
+
+<div class="col-lg-5">
+    <div class="panel panel-danger">
+        <div class="panel-heading"><b>Total Call Attend</b></div>
+        <div class="panel-body"><span id="spanCalls">0</span></div>
+    </div>
+</div>-->
+@*<div class="col-lg-offset-3 col-lg-4">
+        <div class="panel panel-danger">
+            <div class="panel-heading">Today Calls</div>
+            <div class="panel-body"><span id="spanCalls">0</span></div>
+        </div>
+    </div>*@
+
+@*<div class="col-lg-5">
+        <div class="panel panel-success">
+            <div class="panel-heading">Total Order</div>
+            <div class="panel-body"><span id="spanOrder">0</span></div>
+        </div>
+    </div>*@
+<!--</div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 ">
+        <div class="col-lg-offset-1 col-lg-5">-->
+@*<button type="button" class="btn btn-danger ButtonShape" style="padding: 12px 28px;" onclick="CallResponse('Not Intrested')"><h4><b>Not Intrested</b></h4></button>*@
+<!--<button type="button" class="btn btn-success ButtonShape" style="height:67px;width:173px;" onclick="orderPopup()"><h4><b>Intrested</b></h4></button>
+
+</div>
+
+<div class="col-lg-5">-->
+@*<div class="panel panel-success">
+        <div class="panel-heading"><b>Total Order</b></div>
+        <div class="panel-body"><span id="spanOrder">0</span></div>
+    </div>*@
+<!--<button type="button" class="btn btn-danger ButtonShape" style="height:67px;width:173px;" onclick="CallResponse('Not Intrested')"><h4><b>Not Intrested</b></h4></button>
+        </div>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-lg-12">
+
+        <div class="col-lg-offset-1 col-lg-5">
+            <button type="button" class="btn btn-warning ButtonShape" style="height:67px;width:173px;" onclick="CallResponse('No Response')"><h4><b>No Response</b></h4></button>
+        </div>
+
+        <div class="col-lg-5">
+            <button class="btn btn-primary ButtonShape" style="height:67px;width:173px;" onclick="getItems()"><h4><b> Offers % </b></h4></button>
+        </div>
+    </div>
+</div>
+
+
+<br />
+
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="col-lg-offset-1 col-lg-5">
+            <input type="date" class="form-control ShapeFields" id="txt_followup" title="Next FollowUp Date" style="height:67px;width:173px;" />
+        </div>
+        <div class="col-lg-5">
+            <textarea type="text" class="form-control ShapeFields" style="height:67px;width:173px;" title="Remarks" placeholder="Remark....." id="txt_CallRemark"></textarea>
+        </div>
+    </div>
+</div>-->
+@*<br />
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="col-lg-offset-3 col-lg-2">
+                <button class="btn btn-primary ButtonShape" onclick="getItems()"> Offers % </button>
+            </div>
+            <div class="col-lg-2">
+                <button type="button" class="btn btn-success ButtonShape" onclick="Response('Intrested')">Intrested</button>
+            </div>
+
+            <div class="col-lg-2">
+                <button type="button" class="btn btn-danger ButtonShape" onclick="Response('Not Intrested')">Not Intrested</button>
+            </div>
+
+            <div class="col-lg-offset-1 col-lg-2">
+                <button type="button" class="btn btn-warning ButtonShape" onclick="Response('No Response')">No Response</button>
+            </div>
+        </div>
+    </div>*@
+<!--</div>
+        </div>
+    </div>
+
+    <hr />
+    <div class="footer-center">
+        <div class="col-lg-6">
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h4>
+                        <b>
+                            Customer History
+                        </b>
+                    </h4>
+                </div>
+                <div class="panel-body">
+                    <table id="tblCustOldItem"></table>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-lg-6">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h4><b>Customer Details</b></h4>
+                </div>
+                <div class="panel-body">
+                    <table id="tblCustAddress"></table>
+
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <hr />
+    <div class="row">
+        <div class="col-lg-12">
+            <marquee scrollamount="15" onmouseover="this.stop();" onmouseout="this.start();">
+                <img src="~/Img/JivoImg/jivoimg1.jpg" class="circular" />
+                <img src="~/Img/JivoImg/jivo2img.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo3img.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo4img.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo5img.png" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivoimg6.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivoimg7.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo8img.jpg" class="circular col-lg-offset-1" />
+                <img src="~/Img/JivoImg/jivo9img.jpg" class="circular col-lg-offset-1" />
+            </marquee>
+        </div>
+    </div><hr />
+</div>-->
+@*------------------End Comment --------------------*@
+
+<!--<div class="col-lg-offset-4">
+    <h1><span id="counter"></span></h1>
+</div>
+<div class="col-lg-12">-->
+@*<div class="col-lg-7"> <h1 style="margin-left: 72%" class="clock"></h1> </div>*@
+<!--<div class="col-lg-3 col-lg-offset-4">
+    <h3>
+        <span id="hours"></span> :
+        <span id="minutes"></span> :
+        <span id="seconds"></span>-->
+@*<span id="milliseconds"></span>*@
+<!--&nbsp;
+            <button id="pauseButton" onclick="Stop()">Hold</button>
+        </h3>
+    </div>
+    <div class="col-lg-5">
+        <h2 style="margin-left:40%"> @Convert.ToString(Session["user_name"]) Leads </h2>
+    </div>
+
+</div>-->
+@*<div class="col-lg-12">
+        <div class="col-lg-3"> <h3>Mobile</h3> </div>
+        <div class="col-lg-3"> <input type="text" id="txt_Contact" class="form-control" onchange="fetch_customerdetails()"></div>
+    </div>*@
+
+
+
+
+<!--<div class="col-lg-offset-3 col-lg-6" style="text-align:center">-->
+@*<table id="tblLeads" style="border-collapse: collapse;" class="table table-striped table-hover"></table> *@
+<!--<div>-->
+@*<img style="height:300px;width:300px" src="~/Img/Material-Loading-Animation.gif" />*@
+<!--<img style="height:350px;width:350px" src="~/Img/1a3b4be0ea9a7cdd.gif" />-->
+@*<img src="~/Img/hrose.gif" />*@
+<!--</div>
+<div>
+    <h1> <strong><span id="lblCustPhNo"></span></strong> </h1>
+    <br />
+    <br />-->
+@*<h1> <strong><span id="lblCustPhNo">@System.DateTime.Now.ToString() </span></strong> </h1>*@
+@*<span>*@
+@*<script type="text/javascript">document.write(timeClock());</script>*@
+@*<canvas id="canvas" width="500" height="500">cccc</canvas>*@
+@*</span>*@
+<!--</div>
+</div>-->
+@*lucky*@
+<!--<!--<footer class="main-footer" style="margin-bottom:40px;width:87%">-->
+<!--@*<div class="col-lg-11" style="text-align:center">
+    <div class="col-md-3">
+            <h4>Customer History : </h4>
+        </div>*@-->
+<!--<!--<div class="col-lg-12">
+        <div class="col-lg-6">
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h4>
+                        <b>
+                            Customer History
+                        </b>
+                    </h4>
+                </div>
+                <div class="panel-body">
+                    <table id="tblCustOldItem"></table>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-lg-6">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h4><b>Customer Details</b></h4>
+                </div>
+                <div class="panel-body">
+                    <table id="tblCustAddress"></table>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</footer>-->
+<!--<div>
+
+    <div class="c">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="col-lg-5">-->
+@*<button type="button" style="padding: 12px 28px;" class="btn btn-success ButtonShape" onclick="CallResponse('Intrested')"><h4><b> Interested</b></h4></button>*@
+@*<button type="button" style="padding: 12px 28px;" class="btn btn-success ButtonShape" onclick="orderPopup()"><h4><b> Interested</b></h4></button>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="panel panel-danger">
+                            <div class="panel-heading">Total Call Attend</div>
+                            <div class="panel-body"><span id="spanCall">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="col-lg-5">
+                        <button type="button" style="padding: 12px 12px;" class="btn btn-danger ButtonShape" onclick="CallResponse('Not Intrested')"><h4><b> Not Interested </b></h4></button>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="panel panel-success">
+                            <div class="panel-heading">Total Order</div>
+                            <div class="panel-body"><span id="spanOrder">0</span></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class=" col-lg-5">
+                        <button type="button" style="padding: 12px 13px;" class="btn btn-warning ButtonShape" onclick="CallResponse('No Response')"><h4><b> No Response </b></h4></button>
+                    </div>
+                    <div class=" col-lg-6">
+                        <button class="btn btn-primary ButtonShape" style="padding: 12px 46px;" onclick="getItems()"><h4><b> Offers % </b></h4></button>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <br />
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class=" col-lg-5">
+                        <input type="date" style="padding: 0px 4px; height:61px;" class="form-control ShapeFields" id="txt_followup" />
+                    </div>
+                    <div class=" col-lg-6">
+                        <textarea type="text" style="padding: 12px 46px;" class="form-control ShapeFields" placeholder="Remark....." id="txt_CallRemark"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="d">
+        <div class="panel panel-danger">
+            <div class="panel-heading"><h4 style="text-align:center"> Last Calls</h4></div>
+            <div class="panel-body">
+                <table id="tblCallerLastCall" style="border-collapse: collapse;" class="table table-striped table-hover"></table>
+            </div>
+        </div>
+    </div>-->*@
+
+
+
+
+
+<div class="modal fade" id="popup" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">Reason</h3>
+                @*<button type="button" class="close" onclick="CloseTimerModal('close')">*@
+                @*data-dismiss="modal" aria-label="Close"*@
+                @*<span aria-hidden="true">&times;</span>
+                    </button>*@
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-8">
+                            <h3>Please Select a Reason </h3>
+                            <h3>Pop Up Close in  : <label id="counter"></label> seconds</h3>
+                        </div>
+                        @*<div class="col-lg-offset-1 col-lg-3">
+                                <h5 class="btn btn-primary ShapeFields"><span id="counter" class="badge badge-primary"></span></h5>
+                            </div>*@
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-lg-12">
+                        @*<form id="myForm">*@
+                        <label>
+                            <input type="radio" id="RadioLunch" name="Gender" onchange="StopCounter()" />&nbsp; Lunch
+                        </label>
+                        &nbsp;&nbsp;
+
+                        <label>
+                            <input type="radio" id="RadioBreak" name="Gender" onchange="StopCounter()" />&nbsp; Break
+                        </label>
+                        @*</form>*@
+
+                    </div>
+                </div>
+
+                <hr />
+                <div class="row">
+                    <div class="col-lg-12">
+                        @*<div class="col-lg-8">
+                                <h3> Select Time :</h3>
+                            </div>
+                            <div class="col-lg-offset-1 col-lg-3">
+                                <h3>
+                                    <span id="Gethours"></span>:
+                                    <span id="Getminutes"></span>:
+                                    <span id="Getseconds"></span>
+                                </h3>
+                            </div>*@
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-8">
+                            <h3> End timing:</h3>
+                        </div>
+                        <div class="col-lg-offset-1 col-lg-3">
+                            <h3>
+                                <span id="Endhours"></span>:
+                                <span id="Endminutes"></span>:
+                                <span id="Endseconds"></span>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary ButtonShape" onclick="CloseTimerModal('Resume')">Resume</button>
+                    @*<button type="button" class="btn btn-primary ButtonShape">Save changes</button>*@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="modal fade" id="DisplayItem" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h3 class="modal-title" id="exampleModalLongTitle">SKU Details </h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-sm table">
+
+                    <table id="tblItem" class="table table-bordered">
+                        <thead style="border: 1px solid #ddd !important;">
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Rate</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="DisplayOrder" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">Insert Order</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-6">Contact No.</div>
+                        <div class="col-lg-6"><input id="txt_Contact" readonly type="text" class="form-control ShapeFields" onchange="fetch_customerdetails()" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" /></div>
+                    </div>
+
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Name</div>
+                        <div class="col-lg-6"><input id="txt_name" type="text" class="form-control ShapeFields" /></div>
+                    </div>
+
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Location</div>
+                        <div class="col-lg-6"><input type="text" class="form-control ShapeFields" style="cursor: pointer;" readonly onfocus="Locationtab()" /></div>
+                    </div>
+
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Landmark</div>
+                        <div class="col-lg-6"><input id="txt_landmark" type="text" class="form-control ShapeFields" /></div>
+                    </div>
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Item</div>
+                        <div class="col-lg-6"><input id="txt_item" type="text" class="form-control ShapeFields" style="cursor: pointer;" readonly onfocus="Itemtabs()" /></div>
+                    </div>
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Total Qty</div>
+                        <div class="col-lg-6"><label id="txt_total_qty" class="form-control ShapeFields"></label></div>
+                    </div>
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Total Amt</div>
+                        <div class="col-lg-6"><label id="txt_total_price" class="form-control ShapeFields"></label></div>
+                    </div>
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Pay Mode</div>
+                        <div class="col-lg-6">
+                            <select id="dd_PaymentMode" onchange="paymentmodechange()" class="form-control ShapeFields">
+                                <option value="0">--Select Payment Mode--</option>
+                                <option value="Cod">Cod</option>
+                                <option value="Online">Online</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6" id="paymentRemarkHead"> Pay Remark </div>
+                        <div class="col-lg-6"><input id="txt_Payment_Remark" type="text" class="form-control ShapeFields" /></div>
+                    </div>
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Remark</div>
+                        <div class="col-lg-6"><input id="txt_Remark" type="text" class="form-control ShapeFields" /></div>
+                    </div>
+                    <div class="col-lg-12" style="margin-top:10px;">
+                        <div class="col-lg-6">Source</div>
+                        <div class="col-lg-6"><input id="txtSource" class="form-control ShapeFields" /></div>
+                    </div>
+                </div>
+            </div>
+            @*<button id="btnpop" type="submit" value="Open Pop up" class="form-control" onclick="popup2()"></button>*@
+            <div class="modal-footer">
+                <button id="btn_nsert" onclick="Submit()" class="btn btn-primary ButtonShape"><i class="fa fa-save"></i> Submit</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="DisplayOrder2" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="exampleModalLongTitle">Item Status</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span id="msg"></span>
+                <div class="table-sm table">
+
+                    <table id="tbl_order" class="table table-bordered" style="border: 1px solid #ddd !important;">
+                        <thead style="border: 1px solid #ddd !important;">
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Rate</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    @*<button id="btnpop" type="submit" value="Open Pop up" class="form-control" onclick=""></button>*@
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    @*<button type="button" class="btn btn-primary">Save changes</button>*@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="myModalLocation" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" onfocus="Closemodal()">&times;</button>
+                <h4 class="modal-title">Order Delivering Address </h4>
+            </div>
+            <div class="modal-body">
+
+                <div>
+                    <label>Address</label>&nbsp;&nbsp;:
+                    <textarea id="txt_address" class="form-control ShapeFields"></textarea>
+                </div>
+
+                <div>
+                    <label>Pincode</label>&nbsp;&nbsp;:
+                    <input id="txt_pincode" type="text" class="form-control ShapeFields" onchange="fetchAddress()" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" />
+                </div>
+
+                <div>
+                    <label>Area</label>&nbsp;&nbsp;:
+                    <select id="dd_Area" class="form-control ShapeFields" onchange="fetchZoneState()">
+                        @*  <option value="0">--Select Area--</option>*@
+                        @*@{
+                                foreach (var Area in ViewBag.getArea)
+                                {
+                                    <option value="@Area.id">@Area.Area_Name</option>
+                                }
+
+                            }*@
+                    </select>
+
+                </div>
+
+                <div>
+                    <label>Zone</label>&nbsp;&nbsp;:
+                    <select id="dd_zone" class="form-control ShapeFields" onchange="bindarea()">
+                    </select>
+                </div>
+
+                <div>
+                    <label>State</label>&nbsp;&nbsp;:
+                    <select id="dd_State" class="form-control ShapeFields" onchange="bindzone()">
+                        <option value="0">--Select State--</option>
+
+                    </select>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" style="border-radius: 20px;font-size: 14px;" data-dismiss="modal" onclick="Closemodal()">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        @*<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">*@
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" onfocus="focusOnpayModeDD()" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Item details</h4>
+            </div>
+            <div class="modal-body ui-front">
+                @*<div> </div>*@
+                <p>Total Quntity&nbsp;:&nbsp;<span id="TotaqtyShow">0</span>&nbsp;&nbsp;Total Price&nbsp;:&nbsp;<span id="TotalpriceShow">0</span></p>
+                <div class="table-responsive">
+                    <!--Table-->
+                    <table class="table table-striped" id="ItemTable">
+
+                        <!--Table head-->
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Rate</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <!--Table head-->
+                        <!--Table body-->
+                        <tbody>
+                            <tr>
+                                <td hidden="hidden"><input type="text" id="items_itemId0"></td>
+                                <td><input id="txt_itemName0" type="text" class="txtbox ShapeFields" /> <span id="ErrorMsg0"></span></td> @*onchange="load_item()"*@
+                                <td><input id="txt_itemqty0" type="text" class="form-control ShapeFields" onchange="GetTotalQtyAmt(this)" /> <span id="ErrorqtyMsg0"></span></td> @*onchange="calculate_totalprice()"*@
+                                <td><input id="txt_itemrate0" type="text" class="form-control ShapeFields" readonly="readonly" /></td>
+                                <td><input id="txt_total_amount0" type="text" class="form-control ShapeFields" readonly="readonly" /></td>
+                            </tr>
+                        </tbody>
+                        <!--Table body-->
+                    </table>
+                    <!--Table-->
+                </div>
+                <div>
+                    <label id="lblCustOldItem" style="color:red"></label>
+                    <table id="tblCustOldItem">
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    @*<input type='button' value='Add' id="addMore2" class='btn btn-sm btn-info' />*@
+                    @*<a id="addMore2" class="btn btn-sm btn-info" style="border-radius: 20px;font-size: 14px;">
+                            <i class="fa fa-save"></i>  Add New Row
+                        </a>*@
+                    <button id="addMore2" class="btn btn-primary ButtonShape"> <i class="fa fa-save"></i>  Add New Row</button>
+
+                    <button type="button" class="
+                            btn btn-default ButtonShape" onclick="focusOnpayModeDD()" data-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@*Add By Lucky*@
+<div id="IncomingCallsModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" onclick="IncomingCallModalRemove()" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Select Option</h4>
+            </div>
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <label>
+                            <input type="radio" id="RadioExistisngCustomer" name="Gender" onchange="ShowIncomingNumber(this)" />&nbsp; Existisng Customer
+                        </label>
+                        &nbsp;&nbsp;
+
+                        <label>
+                            <input type="radio" id="RadioReference" name="Gender" onchange="ShowIncomingNumber(this)" />&nbsp; Reference
+                        </label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-11" id="ExistisngCustomerDiv">
+                        <label class="col-lg-6">Assign Number</label>
+                        <input class="col-lg-5 ShapeFields" type="text" id="ExistisngCustomerNumber" onkeyup="test()" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" />
+                    </div>
+
+                    <br />
+                    <br />
+                    <div class="col-lg-11" id="ReferenceDiv">
+                        <label class="col-lg-5">Reference Number</label>
+                        <input type="text" class="col-lg-offset-1 col-lg-5 ShapeFields" id="ReferenceNumber" onkeyup="test()" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" />
+                        <span id="ErrorMsgReference"></span>
+                    </div>
+                </div>
+                <div style="text-align:center"><br /><span id="ErrorMsgExits"></span></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default ButtonShape" onclick="IncomingCallModalRemove()" data-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@*End*@
+
+
+
+@*lucky*@
+@*<div class="footer-center">
+        <div class="col-lg-6">
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h4>
+                        <b>
+                            Customer History
+                        </b>
+                    </h4>
+                </div>
+                <div class="panel-body">
+                    <table id="tblCustOldItem"></table>spanCall
+                </div>
+            </div>
+
+        </div>
+        <div class="col-lg-6">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h4><b>Customer Details</b></h4>
+                </div>
+                <div class="panel-body">
+                    <table id="tblCustAddress"></table>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+
+
+

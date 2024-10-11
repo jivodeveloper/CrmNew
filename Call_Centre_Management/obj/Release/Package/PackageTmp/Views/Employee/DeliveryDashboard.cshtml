@@ -1,0 +1,243 @@
+﻿
+@{
+    ViewBag.Title = "DeliveryDashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>DeliveryDashboard</h2>
+<hr />
+<br />
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        fetchdata();
+    });
+
+    function fetchdata() {
+        $.ajax({
+            method: 'Get',
+            url: '/Employee/fetchDeliveryData',
+            //data: '',
+            success: function (data) {
+
+            }
+        })
+    }
+
+</script>
+
+
+
+
+<div class="panel-group" id="accordion1">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion1" href="#collapseOne">
+                    Collapsible Group Item #1
+                </a>
+            </h4>
+        </div>
+        <div id="collapseOne" class="panel-collapse collapse out">
+            <div class="panel-body">
+
+                <div class="table-responsive">
+                    <label>Delivered Address : </label>
+                    <label>sdjfgsjdfjgfjdghsjfh asdjkadfkshjhasdghfgjhasdgfjgjasgdfjkgasjfgasdfgh</label>
+                    <br />
+                    <label>Contact Number : </label>
+                    <label>9858685478</label>
+                </div>
+                <br />
+                <div class="table-responsive">
+                    <table id="tab" class="table table-bordered" style="border: 1px solid #ddd !important;">
+                        <thead style="border: 1px solid #ddd !important;">
+                            <tr class="info">
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Rate</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Canola</td>
+                                <td>2</td>
+                                <td>550</td>
+                                <td>1100</td>
+                                <td>Pending</td>
+                                <td><a href="#" class="btn btn-primary">Cancel</a> &nbsp;<a href="#" class="btn btn-success">Deleverd</a></td>
+                            </tr>
+
+                            <tr>
+                                <td>weatGrass</td>
+                                <td>2</td>
+                                <td>550</td>
+                                <td>1100</td>
+                                <td>Pending</td>
+                                <td><a href="#" class="btn btn-primary">Cancel</a> &nbsp;<a href="#" class="btn btn-success">Deleverd</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*<div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion1" href="#collapseTwo">
+                        Collapsible Group Item #2
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseTwo" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div class="panel-body">
+                        <h2>Heading</h2>
+                        <div class="panel-group" id="accordion21">
+                            <div class="panel">
+                                <a data-toggle="collapse" data-parent="#accordion21" href="#collapseTwoOne">
+                                    View details 2.1 &raquo;
+                                </a>
+                                <div id="collapseTwoOne" class="panel-collapse collapse">
+                                    <div class="panel-body">Details 1</div>
+                                </div>
+                            </div>
+                            <div class="panel ">
+                                <a data-toggle="collapse" data-parent="#accordion21" href="#collapseTwoTwo">
+                                    View details 2.2 &raquo;
+                                </a>
+                                <div id="collapseTwoTwo" class="panel-collapse collapse">
+                                    <div class="panel-body">Details 2</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion1" href="#collapseThree">
+                    Unique Lead ID
+                </a>
+            </h4>
+        </div>
+
+        <div id="collapseThree" class="panel-collapse collapse">
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <label>Add Address : </label>
+                    <label>sdjfgsjdfjgfjdghsjfh asdjkadfkshjhasdghfgjhasdgfjgjasgdfjkgasjfgasdfgh</label>
+                    <br />
+                    <label>Contact Number : </label>
+                    <label>9858685478</label>
+                </div>
+                <br />
+                <div class="panel-group" id="accordion2">
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapseThreeOne">
+                                    Unique Item Id
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseThreeOne" class="panel-collapse collapse out">
+                            <div class="panel-body">
+                                <div class="table-responsive">
+                                    <table id="tab" class="table table-bordered" style="border: 1px solid #ddd !important;">
+                                        <thead style="border: 1px solid #ddd !important;">
+                                            <tr class="info">
+                                                <th>Item Name</th>
+                                                <th>Quantity</th>
+                                                <th>Rate</th>
+                                                <th>Total Amount</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Canola</td>
+                                                <td>2</td>
+                                                <td>550</td>
+                                                <td>1100</td>
+                                                <td>Pending</td>
+                                                <td><a href="#" class="btn btn-primary">Cancel</a> &nbsp;<a href="#" class="btn btn-success">Deleverd</a></td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>weatGrass</td>
+                                                <td>2</td>
+                                                <td>550</td>
+                                                <td>1100</td>
+                                                <td>Pending</td>
+                                                <td><a href="#" class="btn btn-primary">Cancel</a> &nbsp;<a href="#" class="btn btn-success">Deleverd</a></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapseThreeTwo">
+                                    Unique Item Id
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseThreeTwo" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <div class="table-responsive">
+                                    <table id="tab" class="table table-bordered" style="border: 1px solid #ddd !important;">
+                                        <thead style="border: 1px solid #ddd !important;">
+                                            <tr class="info">
+                                                <th>Item Name</th>
+                                                <th>Quantity</th>
+                                                <th>Rate</th>
+                                                <th>Total Amount</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Canola</td>
+                                                <td>2</td>
+                                                <td>550</td>
+                                                <td>1100</td>
+                                                <td>Pending</td>
+                                                <td><a href="#" class="btn btn-primary">Cancel</a> &nbsp;<a href="#" class="btn btn-success">Deleverd</a></td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>weatGrass</td>
+                                                <td>2</td>
+                                                <td>550</td>
+                                                <td>1100</td>
+                                                <td>Pending</td>
+                                                <td><a href="#" class="btn btn-primary">Cancel</a> &nbsp;<a href="#" class="btn btn-success">Deleverd</a></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+

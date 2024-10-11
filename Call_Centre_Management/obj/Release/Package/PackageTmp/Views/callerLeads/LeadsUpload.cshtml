@@ -1,0 +1,54 @@
+﻿
+@{
+    <h1>Upload Leads</h1>
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+
+
+
+
+</script>
+<div class="panel panel-info">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        <form id="ImportExcelForm" action="/callerLeads/ImportExcel" method="post" enctype="multipart/form-data">
+                            <div class="col-lg-3">
+                                <label>Select Caller</label>
+                                <select class="form-control ShapeFields" id="EmployeeId" name="EmployeeId">
+                                    <option value="0" selected="selected">-- Select Caller --</option>
+                                    @{
+                                        foreach (var Getdr in ViewBag.GetEmployeeList)
+                                        {
+                                            <option value="@Getdr.id">(@Getdr.id) &nbsp; @Getdr.fullName</option>
+                                        }
+                                    }
+
+                                </select>
+                            </div>
+                            <div class="col-lg-3">
+                                <label>Upload Leads</label>
+                                <input type="file" class="form-control ShapeFields" id="BulkExcel" name="postedFile" required />
+                            </div>
+
+                            <div class="col-lg-3">
+                                @*<button class="btn btn-primary ButtonShape" style="margin-top:25px;" onclick="UploadExcel()"> Submit</button>*@
+                                <input type="submit" value="Upload" class="btn btn-primary ButtonShape" style="margin-top:25px;" />
+                            </div>
+                        </form>
+
+                        <div class="col-lg-3">
+                            <a class="btn btn-primary ButtonShape" href="~/ExternalItem/UploadCallerLeads.csv" style="margin-top:25px;">Download Excel Format</a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div><h3 style="color:red">Note : Please Upload CSV file  or  You can download Excel file  </h3></div>

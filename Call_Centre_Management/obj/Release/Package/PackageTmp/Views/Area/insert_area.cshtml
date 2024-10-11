@@ -1,0 +1,170 @@
+﻿
+@{
+    ViewBag.Title = "Insert Area";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Insert Area</h2>
+
+
+
+<script type="text/javascript">
+    function AreaSubmit() {
+        var Values = {};
+        Values.Area_Name = $('#txt_Area_Name').val();
+        Values.State_id = $('#dd_state').val();
+        Values.Zone_id = $('#dd_zone').val();
+        Values.pincode = $('#txt_pincode').val();
+
+        if (Values.Area_Name.length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Area/Insert_area",
+                method: "Post",
+                data: { area: Values },
+                success: function (Result) {
+                    if (Result == '1') {
+                        //$('#msg').html("<div class='alert alert-success alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Success!</strong> Record Sucessfully Saved.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                        alert("Area Registered Successfully !!.");
+                        location.reload();
+                    }
+                    else if (Result == '-1') {
+                        alert("Area Name Is Already Exists Please Try Again.");
+                        //$('#msg').html("<div class='alert alert-danger alert-dismissible'><a href = '#' class= 'close' data - dismiss='alert' aria - label='close' ></a><strong>Sorry!</strong> Record Is Already Exists Please Try Again.</div>");
+                        //$('#msg').fadeOut(5000);
+                        //$('#msg').fadeOut("Slow");
+                    }
+                    else {
+                        alert("Oops....Something Gone Wrong ! Please Try Again");
+                    }
+                }
+            });
+        }
+        else {
+            //   $('#msg').html("<span style='background-color:red;color:white'>Please Enter User Name.</span>");
+            alert("Please Enter Area Name.");
+        }
+    }
+
+    function checkUserName() {
+        if ($('#txt_userName').val().length != 0) {
+            $('#msg').val('');
+            $.ajax({
+                url: "/Employee/checkuserName",
+                method: "Post",
+                data: { username: $('#txt_userName').val() },
+                success: function (Result) {
+                    if (Result == true) {
+                        // $('#lbl_userMSG').val('User Name Alredy Exists');
+                        //   alert("User Name Alredy Exists");
+                        $("#txt_userName").val('');
+                        $("#lbl_userMSG").html("<span style='color:red'>Allready Exists</span>");
+                    }
+                    else {
+                        //   $('#lbl_userMSG').val('User Name Available');
+                        $("#lbl_userMSG").html("<span style='color:Green'>User Name Available</span>");
+                    }
+                }
+            })
+        }
+    }
+
+</script>
+
+<script type="text/javascript"></script>
+<div class="form-horizontal">
+    <hr />
+    <span id="msg"></span>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Area Name</label>
+        </div>
+        <div class="col-md-3">
+            <input type="text" id="txt_Area_Name" placeholder="Enter Area Name" class="form-control" style="border-radius: 20px;font-size: 14px;" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label> State</label>
+        </div>
+        <div class="col-md-3">
+            <select name="cars" id="dd_state" class="form-control" style="border-radius: 20px;font-size: 14px;">
+                <option value='0'>--- Select State ---</option>
+                @{
+                    foreach (var state in ViewBag.getstate)
+                    {
+                        <option value="@state.Id">@state.State</option>
+                    }
+
+                }
+            </select>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label> ZONE</label>
+        </div>
+        <div class="col-md-3">
+            <select name="cars" id="dd_zone" class="form-control" style="border-radius: 20px;font-size: 14px;">
+                <option value='0'>--- Select Zone ---</option>
+                @{
+                    foreach (var zone in ViewBag.getzone)
+                    {
+                        <option value="@zone.Id">@zone.role</option>
+                    }
+
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="control-label col-md-2">
+            <label>Pincode</label>
+        </div>
+
+        <div class="col-md-3">
+            <input type="text" id="txt_pincode" onkeypress="return (event.charCode != 8 && event.charCode == 0 || (event.charCode >= 48 && event.charCode <= 57))" placeholder="Enter Pin Code" class="form-control" style="border-radius: 20px;font-size: 14px;" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-3">
+            @{if (Convert.ToString(Session["Insert"]) == "true")
+                {
+                    @*<input type="submit" value="Submit" onclick="AreaSubmit()" class="btn btn-primary" />*@
+                    <a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="AreaSubmit()">
+                        <i class="fa fa-save"></i>  Submit
+                    </a>
+                }
+            }
+            @{
+                if (Convert.ToString(Session["View"]) == "true")
+                {
+
+                    <a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="location.reload();">
+                        <i class="fa fa-refresh"></i> Clear
+                    </a>
+                    @*&nbsp;&nbsp;<input type="submit" value="Clear" onclick="location.reload();" class="btn btn-primary" />*@
+                }
+            }
+        </div>
+    </div>
+</div>
+<div>
+    @{
+        if (Convert.ToString(Session["View"]) == "true")
+        {
+            @*<a href="~/Area/Index">  <input type="button" value="Back" class="btn btn-info" /></a>*@
+            <a href="~/Area/Index" class="btn btn-info" style="border-radius: 20px;font-size: 14px;">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        }
+    }
+</div>

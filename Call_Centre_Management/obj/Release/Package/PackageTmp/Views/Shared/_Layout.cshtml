@@ -1,0 +1,425 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Call Center | @ViewBag.Title</title>
+
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.7 -->
+    <link rel="stylesheet" href="~/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="~/bower_components/font-awesome/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="~/bower_components/Ionicons/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/bower_components/admin-lte/dist/css/AdminLTE.min.css">
+    <!-- AdminLTE Skins. Choose a skin from the css/skins
+         folder instead of downloading all of them to reduce the load. -->
+    <link rel="stylesheet" href="~/bower_components/admin-lte/dist/css/skins/_all-skins.min.css">
+
+    <!-- Google Font -->
+    @*<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">*@
+    @*<link href="~/Scripts/table.css" rel="stylesheet" />*@
+    @*<link href="~/Content/PrintDiv.css" rel="stylesheet" />*@
+    <link href="~/Content/Site.css" rel="stylesheet" />
+    @*<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">*@
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <style>
+        .mirror {
+            display: inline-block;
+            font-size: 15px;
+            -webkit-transform: matrix(-1, 0, 0, 1, 0, 0);
+            -moz-transform: matrix(-1, 0, 0, 1, 0, 0);
+            -o-transform: matrix(-1, 0, 0, 1, 0, 0);
+            transform: matrix(-1, 0, 0, 1, 0, 0);
+        }
+
+        .info {
+            cursor: pointer;
+        }
+
+        .ui-autocomplete {
+            max-height: 300px;
+            overflow-y: scroll;
+            font-size: 15px;
+            background-color: #ECF0F5;
+            max-width: 500px;
+        }
+
+        * html .ui-autocomplete {
+            height: 200px;
+        }
+
+
+       /*image loader */
+
+        #loading {
+            width: 100%;
+            height: 100%;
+            top: 0px;
+            left: 0px;
+            position: fixed;
+            display: block;
+            opacity: .9;
+            background-color: #fff;
+            z-index: 99;
+            text-align: center;
+        }
+
+        #loading-image {
+            position: absolute;
+            top: 250px;
+            left: 550px;
+            z-index: 600;
+        }
+    </style>
+    @*<link href="~/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet" />*@
+
+    @*comment on 26dec2020 by NITIN*@
+    @*<script src="//code.jquery.com/jquery-1.10.2.js"></script>*@
+    @*End*@
+
+    @*These lower 3 links is Plugin for table searching and table pagination*@
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.3.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    @*End*@
+
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+    <!-- jQuery 3 -->
+    @*<script src="~/bower_components/jquery/dist/jquery.min.js"></script>*@
+    <!-- Bootstrap 3.3.7 -->
+    <script src="~/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- SlimScroll -->
+    @*today comment*@
+    @*<script src="~/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>*@
+    @*end*@
+    <!-- FastClick -->
+    <script src="~/bower_components/fastclick/lib/fastclick.js"></script>
+    <!-- AdminLTE App -->
+    <script src="~/bower_components/admin-lte/dist/js/adminlte.min.js"></script>
+    <!-- AdminLTE for demo purposes -->
+    @*<script src="~/bower_components/admin-lte/dist/js/demo.js"></script>*@
+
+
+    <script src="~/Scripts/DSRScripts/Common.js"></script>
+    @*Choosen Link*@
+    <script src="~/Scripts/CommonApi/chosen.js"></script>
+    <link href="~/Content/css/ChosenApi/chosen.css" rel="stylesheet" />
+    <link href="~/Content/css/CommonCss/Master.css" rel="stylesheet" />
+    
+    @*End*@
+    @*<link href="~/Content/css/chosen.css" rel="stylesheet" />*@
+    @*today comment*@
+    @*<script src="~/Scripts/tablecss.js"></script>*@
+    @*<script src="~/Scripts/jquery.tablesorter.js"></script>*@
+    @*<script src="~/Scripts/tableSorter.js"></script>
+        <script src="~/Scripts/fullcalendar.js"></script>
+        <script src="~/Scripts/DSRScripts/moment.min.js"></script>*@
+    @*end*@
+    @*@Scripts.Render("~/bundles/jqueryui")*@
+    @*<script src="~/Scripts/datepicker/js/datepicker.min.js"></script>
+        <link href="~/Scripts/datepicker/css/datepicker.min.css" rel="stylesheet" />
+        <script src="~/Scripts/datepicker/js/i18n/datepicker.en.js"></script>*@
+
+    <script type="text/javascript">
+
+        function fetchNodeId(i) {
+            var j = $(i).attr("title");
+            //console.log(j);
+            $.ajax({
+                url: "/Common/Get_permission",
+                method: "Post",
+                data: { Nodeid: j },
+                success: function (data) {
+
+                }
+            })
+        }
+    </script>
+</head>
+@{
+    if (Session["user_name"] == null)
+    {
+        Response.Redirect("/Login/Employee_Login");
+    }
+}
+
+@{
+    List<Call_Centre_Management.Models.MenuMaster> Model = (List<Call_Centre_Management.Models.MenuMaster>)Session["Permission"];
+}
+@*<body class="hold-transition skin-blue sidebar-mini">*@
+<body class="hold-transition skin-blue sidebar-mini">
+    <!-- Site wrapper -->
+    <div class="wrapper">
+        <header class="main-header">
+            <!-- Logo -->
+            <a href="~/Login/Login" class="navbar-static-top navbar-fixed-top logo">
+                <!-- mini logo for sidebar mini 50x50 pixels -->
+                <span class="logo-mini"><b>J</b>C</span>
+                <!-- logo for regular state and mobile devices -->
+                <span class="logo-lg"><b>Jivo </b>CallCenter</span>
+            </a>
+            <!-- Header Navbar: style can be found in header.less -->
+            <nav class="navbar navbar-static-top navbar-fixed-top">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </a>
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                         @*Tasks: style can be found in dropdown.less*@ 
+                        <li class="dropdown tasks-menu topBar">
+                            <a class="dropdown-toggle" data-toggle="tooltip" data-placement="bottom" title="Un-Approved Shops" href='#'>
+                                <i class="fa fa-bell-o"></i>
+                                <span class="label label-danger" id="unapprovedSalesCount">0</span>
+                            </a>
+                        </li>
+                        @*<li class="dropdown tasks-menu topBar">
+                            <a class="dropdown-toggle" href='#'>
+                                <i class="fa fa-flag-o"></i>
+
+                            </a>
+                        </li>*@
+                        <!-- User Account: style can be found in dropdown.less -->
+                        <li class="dropdown user user-menu topBar">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <span class="hidden-xs">@Session["user_name"]</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- Menu Footer-->
+                                <li class="user-footer">
+                                    <div class="pull-left">
+                                        <label>Change Password</label>
+                                    </div>
+                                    <div class="pull-right">
+                                        @Html.ActionLink("Log Out", "logout", "Login")
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        
+    @*<aside class="main-sidebar">*@
+        <aside class="main-sidebar" style="position:fixed">
+            <section class="sidebar">
+                <div class="input-group sidebar-form">
+                    <input type="text" name="q" class="form-control" placeholder="Search..." id="search" onkeyup="mySearchFunction();">
+                    <span class="input-group-btn">
+                        <button name="search" id="search-btn" class="btn btn-flat" onclick="mySearchFunction();">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </span>
+                </div>
+
+                <ul class="sidebar-menu" data-widget="tree">
+                    <li>
+                        <a href="/Login/Login">
+                            <i class="fa fa-calendar"></i>
+                            @*<i class="logo-mini">Dash</i>*@
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    @*<li class="treeview">
+
+                        <a href="#">
+                            <i class="fa fa-share"></i> <span>Multilevel</span>
+                            <span class="pull-right-container">
+                                <i class="fa fa-angle-left pull-right"></i>
+                            </span>
+                        </a>
+
+                        <ul class="treeview-menu">
+                            <li><a href="#"><i class="fa fa-circle-o"></i> Level One</a></li>
+                            <li class="treeview">
+                                <a href="#">
+                                    <i class="fa fa-circle-o"></i> Level One
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    <li><a href="#"><i class="fa fa-circle-o"></i> Level Two</a></li>
+                                    <li class="treeview">
+                                        <a href="#">
+                                            <i class="fa fa-circle-o"></i> Level Two
+                                            <span class="pull-right-container">
+                                                <i class="fa fa-angle-left pull-right"></i>
+                                            </span>
+                                        </a>
+                                        <ul class="treeview-menu">
+                                            <li><a href="#"><i class="fa fa-circle-o"></i> Level Three</a></li>
+                                            <li><a href="#"><i class="fa fa-circle-o"></i> Level Three</a></li>
+                                            <li><a href="~/Login/Emp_Login">Login</a></li>
+
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li><a href="#"><i class="fa fa-circle-o"></i> Level One</a></li>
+                        </ul>
+                    </li>*@
+                </ul>
+                <ul class="sidebar-menu" data-widget="tree">
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model.Where(s => s.ParentID == 0).GroupBy(Obj => new { Obj.NodeID }).Distinct().ToList())
+                        {
+                            <li class="treeview">
+                                <a href="@item.FirstOrDefault().destination" title="@item.FirstOrDefault().NodeID">
+                                    <i class="fa fa-share"></i> <span> @item.FirstOrDefault().NodeName</span>
+                                    <span class="pull-right-container">
+                                        <i class="fa fa-angle-left pull-right"></i>
+                                    </span>
+                                </a>
+                                <ul class="treeview-menu">
+                                    @foreach (var firstItem in (Model.Where(s => s.ParentID == item.FirstOrDefault().NodeID).ToList()))
+                                    {
+                                        <li>
+                                            <a href="@firstItem.destination" title="@firstItem.NodeID" onclick="fetchNodeId(this)">
+                                                <i class="fa fa-circle-o"></i> <span> @firstItem.NodeName</span>
+                                                <span class="pull-right-container">
+                                                    <i class="fa fa-angle-left pull-right"></i>
+                                                </span>
+                                            </a>
+                                            <ul class="treeview-menu">
+                                                @foreach (var secondItem in (Model.Where(s => s.ParentID == firstItem.NodeID).ToList()))
+                                                {
+                                                    <li>
+                                                        <a href="@secondItem.destination" title="@secondItem.destination" onclick="fetchNodeId(this)">
+                                                            <i class="fa fa-circle-o"></i> <span> @secondItem.NodeName</span>
+                                                            @*<span class="pull-right-container">
+                                                                <i class="fa fa-angle-left pull-right"></i>
+                                                            </span>*@
+                                                        </a>
+                                                        <ul>
+                                                            @foreach (var ThirdItem in (Model.Where(s => s.ParentID == secondItem.NodeID).ToList()))
+                                                            {
+                                                                <li>
+                                                                    <a href="@ThirdItem.destination" title="@ThirdItem.NodeID" onclick="fetchNodeId(this)">
+                                                                        @ThirdItem.NodeName
+                                                                    </a>
+                                                                    <ul>
+                                                                        @foreach (var FourthItem in (Model.Where(s => s.ParentID == ThirdItem.NodeID).ToList()))
+                                                                        {
+                                                                            <li>
+                                                                                <a href="@FourthItem.destination" title="@FourthItem.NodeID" onclick="fetchNodeId(this)">
+                                                                                    @FourthItem.NodeName
+                                                                                </a>
+                                                                                <ul>
+                                                                                    @foreach (var FifthItem in (Model.Where(s => s.ParentID == FourthItem.NodeID).ToList()))
+                                                                                     {
+                                                                                          <li>
+                                                                                               <a href="@FifthItem.destination" title="@FifthItem.NodeID" onclick="fetchNodeId(this)">
+                                                                                                    @FifthItem.NodeName
+                                                                                               </a>
+                                                                                          </li>
+                                                                                      }
+                                                                                </ul>
+                                                                            </li>
+                                                                        }
+                                                                    </ul>
+                                                                </li>
+                                                            }
+                                                        </ul>
+
+                                                    </li>
+
+                                                }
+                                            </ul>
+
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+
+                        }
+                    }
+
+                </ul>
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+    
+        
+    <!-- =============================================== -->
+        
+    
+    
+    <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            <!-- Main content -->
+            <section class="content">
+                <!-- Default box -->
+                <div class="box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">@ViewBag.Title</h3>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse" data-toggle="tooltip"
+                                    title="Collapse">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-box-tool" data-widget="remove" data-toggle="tooltip" title="Remove">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <div id="message" style="display:none"></div>
+                        @RenderBody()
+                    </div>
+                </div>
+                <!-- /.box -->
+            </section>
+            <!-- /.content -->
+        </div>
+        <!-- /.content-wrapper -->
+      
+        
+        
+        <!--<footer class="footer">-->
+            @*<div class="container-fluid">*@
+                @*<div class="row">*@
+                    <!--<div class="col-lg-12">
+                        <div class="col-lg-8">
+                            <strong>Copyright &copy; @DateTime.Now.Year <a style="font-style: italic;color:black" href="http://jivo.in">Jivo Wellness Pvt. Ltd.</a>.</strong> All rights
+                            reserved.
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="text-md-right footer-links d-none d-md-block">
+                                <b>Developed By</b><span style="font-style: italic;color:brown"> Prabhjot Singh and Nitin</span>
+                            </div>
+                        </div>
+                    </div>-->
+                    @*</div>*@
+                @*</div>*@
+
+        <!--</footer>-->
+
+        <footer class="main-footer">
+            @*<div class="col-lg-12">*@
+                @*<div class="col-lg-7">*@
+                <div class="col-lg-7">
+                    <strong>Copyright &copy; @DateTime.Now.Year <a href="http://jivo.in">Jivo Wellness Pvt. Ltd.</a></strong> All rights
+                    reserved.
+                </div>
+                @*<div class="col-lg-5">*@
+                    <b>Developed By</b> <span style="color:royalblue"><b>PRABHJOT SINGH &  <span style="font-size:15px">NITI</span><span class="mirror">N</span></b></span>
+                @*</div>*@
+            @*</div>*@
+        </footer>
+
+    </div>
+</body>
+</html>

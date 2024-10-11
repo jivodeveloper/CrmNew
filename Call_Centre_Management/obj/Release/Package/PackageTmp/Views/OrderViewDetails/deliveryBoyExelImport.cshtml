@@ -1,0 +1,250 @@
+﻿
+@{
+    ViewBag.Title = "deliveryBoyExelImport";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@*Choosen Link*@
+@*<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.4.2/chosen.jquery.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.4.2/chosen.css">*@
+@*End*@
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#loading').fadeOut();
+        $("#ddDeliveryBoyName").chosen();
+    });
+
+
+    function exportExel() {
+
+        var deliveryBoy = [];
+        var GetdeliveryBoy = [], kk;
+        deliveryBoy = $('#ddDeliveryBoyName').val();
+        if (deliveryBoy != null) {
+            deliveryBoy = deliveryBoy;
+        }
+        else {
+            $('select#ddDeliveryBoyName').find('option').each(function () {
+
+                kk = $(this).val();
+                GetdeliveryBoy.push(kk);
+            });
+            deliveryBoy = GetdeliveryBoy;
+        }
+        var FromDate = $('#txtFromDate').val();
+        var ToDate = $('#txtToDate').val();
+        if (Date.length != 0) {
+            $('#loading').show();
+            $.ajax({
+                url: "/OrderViewDetails/deliveryBoyExelImport",
+                method: "Post",
+                data: { FromDate: FromDate, ToDate: ToDate, deliveryBoy: deliveryBoy },
+                success: function (data) {
+                    $('#loading').fadeOut();
+                    if (data == true) {
+                        window.location.href = "/OrderViewDetails/exportExel";
+                       
+                    }
+                    else { alert("Sorry No Record Found In Export Sheet."); }
+                }
+
+            });
+
+        }
+        else { alert("Please Enter Date"); }
+    }
+
+
+
+    function Refresh() {
+        $('#loading').show();
+        $("#ddDeliveryBoyName").val('').trigger("chosen:updated");
+        $("#txtDate").val('');
+        $('#loading').fadeOut();
+    }
+
+    function exportExel2() {
+
+        //var deliveryBoy = [];
+        //var GetdeliveryBoy = [], kk;
+        //deliveryBoy = $('#ddDeliveryBoyName').val();
+        //if (deliveryBoy != null) {
+        //    deliveryBoy = deliveryBoy;
+        //}
+        //else {
+        //    $('select#ddDeliveryBoyName').find('option').each(function () {
+
+        //        kk = $(this).val();
+        //        GetdeliveryBoy.push(kk);
+        //    });
+        //    deliveryBoy = GetdeliveryBoy;
+        //}
+        var FromDate = $('#txtFromDate2').val();
+        var ToDate = $('#txtToDate2').val();
+        if (Date.length != 0) {
+            $('#loading').show();
+            $.ajax({
+                url: "/OrderViewDetails/deliveryBoyExelImport2",
+                method: "Post",
+                data: { FromDate: FromDate, ToDate: ToDate },
+                success: function (data) {
+                    $('#loading').fadeOut();
+                    if (data == true) {
+                        window.location.href = "/OrderViewDetails/exportExel";
+                    }
+                    else { alert("Sorry No Record Found In Export Sheet."); }
+                }
+
+            });
+
+        }
+        else { alert("Please Enter Date"); }
+    }
+
+
+    function exportExelTets() {
+
+        var deliveryBoy = [];
+        var GetdeliveryBoy = [], kk;
+        deliveryBoy = $('#ddDeliveryBoyName').val();
+        if (deliveryBoy != null) {
+            deliveryBoy = deliveryBoy;
+        }
+        else {
+            $('select#ddDeliveryBoyName').find('option').each(function () {
+
+                kk = $(this).val();
+                GetdeliveryBoy.push(kk);
+            });
+            deliveryBoy = GetdeliveryBoy;
+        }
+        var FromDate = $('#txtFromDate').val();
+        var ToDate = $('#txtToDate').val();
+        if (Date.length != 0) {
+            $('#loading').show();
+            $.ajax({
+                url: "/OrderViewDetails/deliveryExportTest",
+                method: "Post",
+                data: { FromDate: FromDate, ToDate: ToDate, deliveryBoy: deliveryBoy },
+                success: function (data) {
+                    $('#loading').fadeOut();
+                    if (data == true) {
+                        window.location.href = "/OrderViewDetails/exportExel";
+
+                    }
+                    else { alert("Sorry No Record Found In Export Sheet."); }
+                }
+
+            });
+
+        }
+        else { alert("Please Enter Date"); }
+    }
+</script>
+
+<div id="loading">
+    <img id="loading-image" src="~/Img/bottleLoder.gif" alt="Loading..." />
+</div>
+
+<h4><strong>Assign Pending Order Excel</strong> </h4>
+<div class="panel-info">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        @*<div class="col-lg-1"><label style="font-size:15px;"><strong>Assign Date</strong></label></div>*@
+                        <div class="col-lg-3">
+                            <label style="margin-right:10px; font-size:20px;"><b> From Date  </b></label>
+                            <input id="txtFromDate" type="date" class="ShapeFields" />
+                        </div>
+                        <div class="col-lg-3">
+                            <label style="margin-right:10px; font-size:20px;"><b> To Date  </b></label>
+                            <input id="txtToDate" type="date" class="ShapeFields" />
+                        </div>
+                        <div class="col-lg-3">
+                            <label style="margin-right:10px; font-size:20px;"><b>Delivery Boy</b></label>
+                            <select id="ddDeliveryBoyName" multiple type="text" class="chzn-select ShapeFields" style="width:200px;" title="Select Delivery Boy Name">
+                                @*<option></option>*@
+                                @{
+                                    foreach (var d in ViewBag.deliveryBoy)
+                                    {
+                                        <option value=@d.id>@d.fullName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        @{
+                            if (Convert.ToString(Session["View"]) == "true" || Convert.ToString(Session["Insert"]) == "true" || Convert.ToString(Session["Edit"]) == "true")
+                            {
+                                <div class="col-lg-3">
+                                    @*<a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="exportExel()">
+                                            <i class="fa fa-download"></i> Export Excel
+                                        </a>*@
+
+                                    <button class="btn btn-primary ButtonShape" onclick="exportExel()"><i class="fa fa-download"></i> Export Excel</button>
+                                    @*<button class="btn btn-primary ButtonShape" onclick="exportExelTets()"><i class="fa fa-download"></i> Export Excel Test</button>*@
+
+                                    @*<a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="Refresh()">
+                                            <i class="fa fa-refresh"></i> Clear
+                                        </a>*@
+                                    <button class="btn btn-primary ButtonShape" onclick="Refresh()"> <i class="fa fa-refresh"></i> Clear</button>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <br />
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4> <strong>Assign Order Status Excel</strong> </h4>
+<div class="panel-info">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        @*<div class="col-lg-1"><label style="font-size:15px;"><strong>Assign Date</strong></label></div>*@
+                        <div class="col-lg-3">
+                            <label style="margin-right:10px; font-size:20px;"><b> From Date  </b></label>
+                            <input id="txtFromDate2" type="date" class="ShapeFields" />
+                        </div>
+                        <div class="col-lg-3">
+                            <label style="margin-right:10px; font-size:20px;"><b> To Date  </b></label>
+                            <input id="txtToDate2" type="date" class="ShapeFields" />
+                        </div>
+
+                        @{
+                            if (Convert.ToString(Session["View"]) == "true" || Convert.ToString(Session["Insert"]) == "true" || Convert.ToString(Session["Edit"]) == "true")
+                            {
+                                <div class="col-lg-3">
+                                    @*<a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="exportExel2()">
+                                            <i class="fa fa-download"></i> Export Excel
+                                        </a>*@
+                                    <button class="btn btn-primary ButtonShape" onclick="exportExel2()"><i class="fa fa-download"></i> Export Excel</button>
+                                    @*<a class="btn btn-primary" style="border-radius: 20px;font-size: 14px;" onclick="Refresh()">
+                                            <i class="fa fa-refresh"></i> Clear
+                                        </a>*@
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <br />
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
